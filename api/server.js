@@ -5,7 +5,6 @@ const passport = require("passport");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const fs = require("fs");
-
 dotenv.config();
 require("./config/passport");
 
@@ -27,14 +26,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-const privateKeyPath = process.env.GITHUB_PRIVATE_KEY_PATH;
-if (!privateKeyPath || !fs.existsSync(privateKeyPath)) {
-  console.error(
-    `Error: GITHUB_PRIVATE_KEY_PATH is invalid or does not point to a valid file.`
-  );
-  process.exit(1);
-}
-
 // Routes
 app.use("/auth", authRoutes);
 app.use("/github", githubRoutes);
@@ -46,4 +37,6 @@ mongoose
   .catch((err) => console.log("MongoDB Error:", err));
 
 const PORT = process.env.API_PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);

@@ -1,6 +1,5 @@
-import NextAuth from "next-auth"; 
+import NextAuth from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
-
 
 export default NextAuth({
   providers: [
@@ -29,7 +28,7 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account) {
-        token.accessToken = account.access_token;
+        token.accessToken = account.access_token || token.accessToken; // Keep existing token if undefined
       }
       if (profile) {
         token.login = profile.login;
@@ -41,7 +40,9 @@ export default NextAuth({
     async session({ session, token }) {
       console.log("Session Token:", token);
 
+      
       session.user = {
+        ...session.user, // Keep existing session data
         login: token.login,
         id: token.id,
         avatar: token.avatar,
@@ -51,9 +52,4 @@ export default NextAuth({
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: "/api/auth/signin",
-    signOut: "/api/auth/signout",
-    error: "/api/auth/error",
-  },
 });
