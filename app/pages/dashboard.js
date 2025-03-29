@@ -84,7 +84,11 @@ export default function Dashboard() {
             style={{ padding: "10px", border: "1px solid #ccc" }}
           >
             <h2>{repo.name}</h2>
+<<<<<<< HEAD
+            <p>Full Name: {repo.full_name}</p>
+=======
             <p>Repo Name: {repo.full_name}</p>
+>>>>>>> main
             <p>Repo ID: {repo.id}</p>
             <button
               onClick={() => handleSetupDocker(repo.full_name)}
@@ -98,7 +102,11 @@ export default function Dashboard() {
 
       <p>Username: {session?.user?.login}</p>
       <p>GitHub Email: {session?.user?.email}</p>
+<<<<<<< HEAD
+      {session?.user?.image && <img src={session?.user?.image} alt="Profile" />} 
+=======
       {session?.user?.image && <img src={session?.user?.image} alt="Profile" />}
+>>>>>>> main
 
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
       <button
