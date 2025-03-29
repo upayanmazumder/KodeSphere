@@ -35,6 +35,34 @@ export default function Dashboard() {
     signOut({ callbackUrl: "/login" });
   };
 
+  const handleSetupDocker = async (repoName) => {
+    try {
+      const response = await fetch("http://localhost:5000/analyze-repo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ repoUrl: `https://github.com/${repoName}` }),
+      });
+      const data = await response.json();
+      if (data.dockerfile || data.dockerCompose) {
+        let message = "Suggested Docker configurations:\n\n";
+        if (data.dockerfile) {
+          message += `Dockerfile:\n${data.dockerfile}\n\n`;
+        }
+        if (data.dockerCompose) {
+          message += `Docker Compose:\n${data.dockerCompose}`;
+        }
+        alert(message);
+      } else {
+        alert("No Docker file suggestions available for this repository.");
+      }
+    } catch (err) {
+      console.error("Error analyzing repository:", err);
+      alert("Failed to analyze the repository.");
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -65,13 +93,19 @@ export default function Dashboard() {
             >
               Link GitHub App
             </button>
+            <button
+              onClick={() => handleSetupDocker(repo.full_name)}
+              style={{ marginTop: "10px", color: "white" }}
+            >
+              Setup Docker
+            </button>
           </div>
         ))}
       </div>
 
       <p>Username: {session?.user?.login}</p>
       <p>GitHub Email: {session?.user?.email}</p>
-      {session?.user?.image && <img src={session?.user?.image} alt="Profile" />} 
+      {session?.user?.image && <img src={session?.user?.image} alt="Profile" />}
 
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
       <button
