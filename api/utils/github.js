@@ -2,7 +2,14 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 
 function generateGitHubAppJWT() {
-  const privateKey = fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH, "utf8");
+  let privateKey;
+  try {
+    privateKey = fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH, "utf8");
+    console.log("Private key file read successfully.");
+  } catch (error) {
+    console.error("Error reading private key file:", error.message);
+    throw error;
+  }
 
   return jwt.sign(
     {

@@ -5,13 +5,13 @@ import GitHubProvider from "next-auth/providers/github";
 export default NextAuth({
   providers: [
     GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID, // From your GitHub App OAuth credentials
+      clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       authorization: {
         url: "https://github.com/login/oauth/authorize",
         params: {
           client_id: process.env.GITHUB_CLIENT_ID,
-          scope: "read:user user:email repo", // Request necessary scopes
+          scope: "read:user user:email repo",
           allow_signup: true,
         },
       },
@@ -39,11 +39,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      console.log("Session Token:", token); // Debugging log to check token
-
-      console.log("Session Token:", token); // Debugging log to check token
-
-      console.log("Session Token:", token); // Debugging log to check token
+      console.log("Session Token:", token);
 
       session.user = {
         login: token.login,
@@ -58,6 +54,6 @@ export default NextAuth({
   pages: {
     signIn: "/api/auth/signin",
     signOut: "/api/auth/signout",
-    error: "/api/auth/error", // Error page
+    error: "/api/auth/error",
   },
 });
