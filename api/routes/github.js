@@ -6,15 +6,15 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const router = express.Router();
+const router = express.Router(); // ✅ Define router before using it
+
 const { importUserRepositories } = require("../controllers/githubController");
 
-
+// GitHub App Login
 router.post('/login', async (req, res) => {
   try {
     const jwtToken = generateGitHubAppJWT();
 
-  
     const installationsRes = await axios.get("https://api.github.com/app/installations", {
       headers: { Authorization: `Bearer ${jwtToken}`, Accept: "application/vnd.github+json" },
     });
@@ -25,7 +25,6 @@ router.post('/login', async (req, res) => {
 
     const installationId = installationsRes.data[0].id;
 
-    
     const tokenRes = await axios.post(
       `https://api.github.com/app/installations/${installationId}/access_tokens`,
       {},
@@ -34,7 +33,6 @@ router.post('/login', async (req, res) => {
 
     const accessToken = tokenRes.data.token;
 
-    // Redirect logic
     res.redirect(`/dashboard?access_token=${accessToken}`);
   } catch (error) {
     console.error("Error during GitHub App login:", error);
@@ -42,10 +40,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
 router.post('/import', importUserRepositories); 
 
-// Generate JWT for github
+// Generate GitHub App JWT
 function generateGitHubAppJWT() {
   const privateKey = fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH, "utf8");
 
@@ -60,23 +57,31 @@ function generateGitHubAppJWT() {
   );
 }
 
-
+// ✅ Ensure this function uses the authenticated user's GitHub ID
 router.get("/repos", async (req, res) => {
   try {
+    const { githubUserId } = req.query;
+    if (!githubUserId) {
+      return res.status(400).json({ error: "GitHub user ID is required" });
+    }
+
     const jwtToken = generateGitHubAppJWT();
 
-    //  installation ID
     const installationsRes = await axios.get("https://api.github.com/app/installations", {
       headers: { Authorization: `Bearer ${jwtToken}`, Accept: "application/vnd.github+json" },
     });
 
     if (!installationsRes.data.length) {
-      return res.status(404).json({ error: "No installation found" });
+      return res.status(404).json({ error: "No installations found" });
     }
 
-    const installationId = installationsRes.data[0].id;
+    const userInstallation = installationsRes.data.find(inst => inst.account.id.toString() === githubUserId);
+    if (!userInstallation) {
+      return res.status(403).json({ error: "No installation found for this user" });
+    }
 
-    // installation access token
+    const installationId = userInstallation.id;
+
     const tokenRes = await axios.post(
       `https://api.github.com/app/installations/${installationId}/access_tokens`,
       {},
@@ -85,15 +90,15 @@ router.get("/repos", async (req, res) => {
 
     const accessToken = tokenRes.data.token;
 
-    // Fetch repositories
     const reposRes = await axios.get("https://api.github.com/installation/repositories", {
       headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github+json" },
     });
 
     res.json({ repos: reposRes.data.repositories });
   } catch (error) {
+    console.error("Error fetching repositories:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-module.exports = router;
+module.exports = router; 

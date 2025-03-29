@@ -15,7 +15,13 @@ export default function Dashboard() {
     if (!session) {
       router.push("/login");
     } else {
-      fetch(`${API_URL}/github/repos`)
+      const githubUserId = session?.user?.id; // Extract GitHub User ID
+      if (!githubUserId) {
+        console.error("GitHub user ID is missing from session data.");
+        return;
+      }
+
+      fetch(`${API_URL}/github/repos?githubUserId=${githubUserId}`) // Pass githubUserId as query param
         .then((res) => res.json())
         .then((data) => {
           console.log("Fetched Repositories:", data.repos);
@@ -47,7 +53,6 @@ export default function Dashboard() {
           <div key={repo.id} className="repo-tile">
             <h2>{repo.name}</h2>
             <p>Full Name: {repo.full_name}</p>
-
             <p>Repo ID: {repo.id}</p>
             <button
               onClick={() =>
@@ -64,9 +69,10 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <p>Username: {session?.user.login}</p>
-      <p>GitHub Email: {session?.user.email}</p>
-      {session?.user.image && <image src={session?.user.image}></image>}
+      <p>Username: {session?.user?.login}</p>
+      <p>GitHub Email: {session?.user?.email}</p>
+      {session?.user?.image && <img src={session?.user?.image} alt="Profile" />} 
+
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
       <button
         onClick={handleLogout}
