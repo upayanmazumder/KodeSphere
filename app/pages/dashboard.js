@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -26,25 +26,42 @@ export default function Dashboard() {
   }, [session, router]);
 
   const handleLogout = () => {
-    signOut({ callbackUrl: '/login' });
+    signOut({ callbackUrl: "/login" });
   };
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>Your Repositories</h1>
-        <button onClick={handleLogout} style={{ marginBottom: '20px', color: 'white' }}>Logout</button>
+        <button
+          onClick={handleLogout}
+          style={{ marginBottom: "20px", color: "white" }}
+        >
+          Logout
+        </button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          marginTop: "20px",
+        }}
+      >
         {repos.map((repo) => (
           <div key={repo.id} className="repo-tile">
             <h2>{repo.name}</h2>
             <p>Full Name: {repo.full_name}</p>
 
             <p>Repo ID: {repo.id}</p>
-            <button 
-              onClick={() => window.open(process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL, '_blank')} 
-              style={{ marginTop: '10px', color: 'white' }}
+            <button
+              onClick={() =>
+                window.open(
+                  process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL,
+                  "_blank"
+                )
+              }
+              style={{ marginTop: "10px", color: "white" }}
             >
               Link GitHub App
             </button>
@@ -53,7 +70,7 @@ export default function Dashboard() {
       </div>
       <p>Username: {session?.user.login}</p>
       <p>GitHub Email: {session?.user.email}</p>
-      <image src={session?.user.image}></image>
+      {session?.user.image && <image src={session?.user.image}></image>}
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
     </div>
   );
