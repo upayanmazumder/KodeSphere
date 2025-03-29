@@ -78,21 +78,14 @@ export default function Dashboard() {
         }}
       >
         {repos.map((repo) => (
-          <div key={repo.id} className="repo-tile">
+          <div
+            key={repo.id}
+            className="repo-tile"
+            style={{ padding: "10px", border: "1px solid #ccc" }}
+          >
             <h2>{repo.name}</h2>
-            <p>Full Name: {repo.full_name}</p>
+            <p>Repo Name: {repo.full_name}</p>
             <p>Repo ID: {repo.id}</p>
-            <button
-              onClick={() =>
-                window.open(
-                  process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL,
-                  "_blank"
-                )
-              }
-              style={{ marginTop: "10px", color: "white" }}
-            >
-              Link GitHub App
-            </button>
             <button
               onClick={() => handleSetupDocker(repo.full_name)}
               style={{ marginTop: "10px", color: "white" }}
