@@ -1,14 +1,17 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+require("dotenv").config(); // Load environment variables from .env file
 
 function generateGitHubAppJWT() {
   let privateKey;
   try {
-    privateKey = fs.readFileSync(
-      path.join(__dirname, "private-key.pem"),
-      "utf8"
-    );
+    const privateKeyPath = process.env.GITHUB_PRIVATE_KEY_PATH;
+    if (!privateKeyPath) {
+      throw new Error("GITHUB_PRIVATE_KEY_PATH is not defined in .env file.");
+    }
+
+    privateKey = fs.readFileSync(privateKeyPath, "utf8");
     console.log("Private key file read successfully.");
   } catch (error) {
     console.error("Error reading private key file:", error.message);

@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   const handleSetupDocker = async (repoName) => {
     try {
-      const response = await fetch("http://localhost:5000/analyze-repo", {
+      const response = await fetch(`${API_URL}/analyze-repo`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

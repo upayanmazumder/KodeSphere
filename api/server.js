@@ -10,11 +10,10 @@ require("./config/passport");
 
 const authRoutes = require("./routes/auth");
 const githubRoutes = require("./routes/github");
-const analyzeRoutes = require("./routes/analyze"); // Import analyze routes
+const analyzeRoutes = require("./routes/analyze");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(
@@ -27,18 +26,15 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
 app.use("/auth", authRoutes);
 app.use("/github", githubRoutes);
-app.use("/", analyzeRoutes); // Use analyze routes
+app.use("/", analyzeRoutes);
 
-// Database connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
-// Server startup
 const PORT = process.env.API_PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
