@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from the root .env file
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 import NextAuth from "next-auth";
@@ -24,7 +23,6 @@ export default NextAuth({
   debug: true,
 });
 
-// Log environment variables to verify they are loaded
 if (process.env.NODE_ENV === "development") {
   console.log("🔍 Checking environment variables:");
   console.log("GITHUB_CLIENT_ID:", process.env.GITHUB_CLIENT_ID ? "✅ Loaded" : "❌ Not Found");
