@@ -1,36 +1,31 @@
 require("dotenv").config();
 const express = require("express");
+const axios = require("axios");
 
 const session = require("express-session");
 const cors = require("cors");
-const passport = require("passport");
 const connectDB = require("./database/db");
 
-require("dotenv").config();
-require("./Auth/github");
-
-
-const authRoutes = require("./Routes/auth");
-
+const githubAuthRoutes = require("./Routes/auth/github");
 const userRoutes = require("./Routes/users");
-
 
 const app = express();
 
+app.use(express.json());
+
 connectDB();
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// ___________________________________________________________________________________________
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || "secret",
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(cors({ origin: ["http://localhost:3000", "https://ks.upayan.dev"], credentials: true }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+// ___________________________________________________________________________________________
 
-app.use("/auth", authRoutes);
+app.use("/auth", githubAuthRoutes);
 app.use("/user", userRoutes);
 
-app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
+// ___________________________________________________________________________________________
+
+app.listen(8080, () =>
+  console.log("✅ Server running on http://localhost:8080")
+);

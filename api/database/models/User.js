@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String },
   avatar: { type: String },
-  subdomain: { type: String, unique: true }
+  subdomain: { type: String, unique: true },
 });
 
 module.exports = mongoose.model("User", UserSchema);
