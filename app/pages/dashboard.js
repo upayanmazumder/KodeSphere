@@ -18,10 +18,10 @@ export default function Dashboard() {
       fetch(`${API_URL}/github/repos`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Fetched Repositories:", data.repos); // Log the fetched repositories
-          setRepos(data.repos || []);  // Update repos state
+          console.log("Fetched Repositories:", data.repos);
+          setRepos(data.repos || []);
         })
-        .catch((err) => console.error("Error fetching repos:", err)); // Handle errors
+        .catch((err) => console.error("Error fetching repos:", err));
     }
   }, [session, router]);
 
@@ -52,8 +52,8 @@ export default function Dashboard() {
         ))}
       </div>
       <p>Username: {session?.user.login}</p>
-      <p>GitHub ID: {session?.user.email}</p>
-      <p>GitHub ID: {session?.user.image}</p>
+      <p>GitHub Email: {session?.user.email}</p>
+      <image src={session?.user.image}></image>
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
     </div>
   );
