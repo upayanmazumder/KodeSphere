@@ -1,0 +1,25 @@
+{
+  "name": "kodesphere",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "api": "node api/server.js",
+    "app": "cd app && npm run dev",
+    "dev": "concurrently \"npm run api\" \"npm run app\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/upayanmazumder/KodeSphere.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/upayanmazumder/KodeSphere/issues"
+  },
+  "homepage": "https://github.com/upayanmazumder/KodeSphere#readme",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
