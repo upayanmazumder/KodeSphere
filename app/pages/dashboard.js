@@ -51,7 +51,7 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-      <p>Username: {session?.user.name}</p>
+      <p>Username: {session?.user.login}</p>
       <p>GitHub ID: {session?.user.email}</p>
       <p>GitHub ID: {session?.user.image}</p>
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>

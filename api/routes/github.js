@@ -7,8 +7,45 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const router = express.Router();
+const { importUserRepositories } = require("../controllers/githubController");
 
-// Generate JWT for GitHub App
+
+router.post('/login', async (req, res) => {
+  try {
+    const jwtToken = generateGitHubAppJWT();
+
+  
+    const installationsRes = await axios.get("https://api.github.com/app/installations", {
+      headers: { Authorization: `Bearer ${jwtToken}`, Accept: "application/vnd.github+json" },
+    });
+
+    if (!installationsRes.data.length) {
+      return res.status(404).json({ error: "No installation found" });
+    }
+
+    const installationId = installationsRes.data[0].id;
+
+    
+    const tokenRes = await axios.post(
+      `https://api.github.com/app/installations/${installationId}/access_tokens`,
+      {},
+      { headers: { Authorization: `Bearer ${jwtToken}`, Accept: "application/vnd.github+json" } }
+    );
+
+    const accessToken = tokenRes.data.token;
+
+    // Redirect logic
+    res.redirect(`/dashboard?access_token=${accessToken}`);
+  } catch (error) {
+    console.error("Error during GitHub App login:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.post('/import', importUserRepositories); 
+
+// Generate JWT for github
 function generateGitHubAppJWT() {
   const privateKey = fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH, "utf8");
 
@@ -23,12 +60,12 @@ function generateGitHubAppJWT() {
   );
 }
 
-// Get User Repositories via GitHub App
+
 router.get("/repos", async (req, res) => {
   try {
     const jwtToken = generateGitHubAppJWT();
 
-    // Get installation ID
+    //  installation ID
     const installationsRes = await axios.get("https://api.github.com/app/installations", {
       headers: { Authorization: `Bearer ${jwtToken}`, Accept: "application/vnd.github+json" },
     });
@@ -39,7 +76,7 @@ router.get("/repos", async (req, res) => {
 
     const installationId = installationsRes.data[0].id;
 
-    // Exchange JWT for installation access token
+    // installation access token
     const tokenRes = await axios.post(
       `https://api.github.com/app/installations/${installationId}/access_tokens`,
       {},

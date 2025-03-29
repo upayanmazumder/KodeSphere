@@ -30,7 +30,7 @@ app.use(passport.session());
 app.use("/auth", authRoutes);
 app.use("/github", githubRoutes);
 
-// Connect to MongoDB
+// MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
