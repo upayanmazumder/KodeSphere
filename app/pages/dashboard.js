@@ -32,14 +32,9 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Your Repositories</h1>
-        <button
-          onClick={handleLogout}
-          style={{ marginBottom: "20px", color: "white" }}
-        >
-          Logout
-        </button>
+        <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Link Github</a>
       </div>
+      <h1>Your Repositories</h1>
       <div
         style={{
           display: "flex",
@@ -68,10 +63,17 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
       <p>Username: {session?.user.login}</p>
       <p>GitHub Email: {session?.user.email}</p>
       {session?.user.image && <image src={session?.user.image}></image>}
       <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
+      <button
+        onClick={handleLogout}
+        style={{ marginBottom: "20px", color: "white" }}
+      >
+        Logout
+      </button>
     </div>
   );
 }
