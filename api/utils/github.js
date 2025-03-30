@@ -6,7 +6,10 @@ require("dotenv").config(); // Load environment variables from .env file
 function generateGitHubAppJWT() {
   let privateKey;
   try {
-    const privateKeyPath = process.env.GITHUB_PRIVATE_KEY_PATH;
+    const privateKeyPath = path.resolve(
+      __dirname,
+      process.env.GITHUB_PRIVATE_KEY_PATH
+    );
     if (!privateKeyPath) {
       throw new Error("GITHUB_PRIVATE_KEY_PATH is not defined in .env file.");
     }

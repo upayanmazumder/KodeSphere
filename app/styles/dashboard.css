@@ -1,17 +1,25 @@
-.dashboard-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  color: white;
+.repo-search-bar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
 }
 
-.dashboard-header {
+.repo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 20px;
+}
+
+.id-name {
+  margin-bottom: 7px;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
-}
-
-.repo-tile {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.1);
 }
