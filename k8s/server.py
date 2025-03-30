@@ -1,35 +1,43 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
+import tempfile
+import os
 
 app = FastAPI()
+
+def apply_k8s_manifest(manifest_content: str):
+    """Safely apply a Kubernetes manifest using a temporary file."""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as temp_file:
+        temp_file.write(manifest_content.encode())
+        temp_file_path = temp_file.name
+
+    try:
+        subprocess.run(["kubectl", "apply", "-f", temp_file_path], check=True, text=True)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"Error deploying app: {str(e)}")
+    finally:
+        os.remove(temp_file_path)  # Cleanup temp file
 
 @app.post("/deploy")
 async def deploy_app(payload: dict):
     image = payload.get("image")
-    if not image:
-        raise HTTPException(status_code=400, detail="Missing required field: image")
+    domains = payload.get("domains")  # Dictionary { "domain.com": port }
+    ports = payload.get("ports", [])  # List of exposed ports
+    env_vars = payload.get("env", {})  # Dictionary of environment variables
 
-    # Default values
-    namespace = payload.get("namespace", "default")
-    ports = payload.get("ports", [80])
-    domains = payload.get("domains", [])
-    env_vars = payload.get("env", {})
-    resources = payload.get("resources", {
-        "requests": {"cpu": "250m", "memory": "512Mi"},
-        "limits": {"cpu": "500m", "memory": "1Gi"}
-    })
-    autoscaling = payload.get("autoscaling", {"enabled": False})
-    storage = payload.get("storage", {"enabled": False})
+    if not image or not domains or not isinstance(domains, dict) or not ports:
+        raise HTTPException(status_code=400, detail="Invalid or missing required fields")
 
-    app_name = image.split(":")[0].replace("/", "-")
+    # Extract app name from the first domain
+    app_name = list(domains.keys())[0].split(".")[0]  
 
-    # Deployment YAML
+    # Generate Kubernetes YAML files
     deployment_yaml = f"""
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {app_name}-deployment
-  namespace: {namespace}
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -51,23 +59,14 @@ spec:
 """ + "".join(f"""
         - name: {key}
           value: "{value}"
-""" for key, value in env_vars.items()) + f"""
-        resources:
-          requests:
-            cpu: {resources["requests"]["cpu"]}
-            memory: {resources["requests"]["memory"]}
-          limits:
-            cpu: {resources["limits"]["cpu"]}
-            memory: {resources["limits"]["memory"]}
-"""
+""" for key, value in env_vars.items())
 
-    # Service YAML
     service_yaml = f"""
 apiVersion: v1
 kind: Service
 metadata:
   name: {app_name}-service
-  namespace: {namespace}
+  namespace: default
 spec:
   selector:
     app: {app_name}
@@ -78,15 +77,12 @@ spec:
     targetPort: {port}
 """ for port in ports)
 
-    # Ingress YAML (only if domains are provided)
-    ingress_yaml = ""
-    if domains:
-        ingress_yaml = f"""
+    ingress_yaml = f"""
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {app_name}-ingress
-  namespace: {namespace}
+  namespace: default
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
@@ -102,26 +98,20 @@ spec:
           service:
             name: {app_name}-service
             port:
-              number: {ports[0]}
+              number: {port}
+""" for domain, port in domains.items()) + """
   tls:
+""" + "".join(f"""
   - hosts:
     - {domain}
     secretName: {app_name}-tls
-""" for domain in domains)
+""" for domain in domains.keys())
 
-    # Apply Kubernetes manifests
     try:
-        subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
-        subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
-        if ingress_yaml:
-            subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail=f"Error deploying app: {str(e)}")
+        apply_k8s_manifest(deployment_yaml)
+        apply_k8s_manifest(service_yaml)
+        apply_k8s_manifest(ingress_yaml)
+    except HTTPException as e:
+        raise e  # Forward the error response
 
-    return {
-        "message": f"Deployment successful for {app_name}",
-        "namespace": namespace,
-        "deployment": app_name,
-        "ports": ports,
-        "domains": domains
-    }
+    return {"message": f"Deployment successful for {list(domains.keys())}", "deployment": app_name}
