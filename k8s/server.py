@@ -6,18 +6,19 @@ app = FastAPI()
 
 @app.post("/deploy")
 async def deploy_app(payload: dict):
-    domains = payload.get("domains")
+    image = payload.get("image")
+    urls = payload.get("urls")
     
-    if not domains:
-        raise HTTPException(status_code=400, detail="Missing required domains field")
-    
-    for domain_info in domains:
-        image = domain_info.get("image")
-        url = domain_info.get("url")
-        ports = domain_info.get("ports", [80])  # Default to port 80 if not specified
+    if not image or not urls:
+        raise HTTPException(status_code=400, detail="Missing required fields: image or urls")
 
-        if not image or not url or not ports:
-            raise HTTPException(status_code=400, detail="Missing required fields for domain")
+    # Loop through each URL and create necessary Kubernetes resources
+    for url_info in urls:
+        url = url_info.get("url")
+        ports = url_info.get("ports", [80])  # Default to port 80 if not specified
+
+        if not url or not ports:
+            raise HTTPException(status_code=400, detail="Missing required fields for URL")
 
         app_name = url.split(".")[0]  # Extract subdomain
 
@@ -99,4 +100,4 @@ spec:
         except subprocess.CalledProcessError as e:
             raise HTTPException(status_code=500, detail=f"Error deploying app for {url}: {str(e)}")
 
-    return {"message": "Deployment successful for all domains", "domains": domains}
+    return {"message": "Deployment successful for all URLs", "urls": [url_info.get("url") for url_info in urls]}
