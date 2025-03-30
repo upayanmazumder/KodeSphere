@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: smart-home-app
+  name: demo-app
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: smart-home
+      app: demo-app
   template:
     metadata:
       labels:
-        app: smart-home
+        app: demo-app
     spec:
       containers:
-        - name: smart-home
-          image: ghcr.io/upayanmazumder/smart-home-system/app:latest
-          ports:
-            - containerPort: 3000
-          imagePullPolicy: Always
+      - name: smart-home-app
+        image: ghcr.io/upayanmazumder/smart-home-system/app:latest
+        ports:
+        - containerPort: 3000
