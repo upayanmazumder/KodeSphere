@@ -1,24 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: demo-ingress
+  name: api-ingress
   namespace: default
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
   rules:
-  - host: demo.vitians.in
+  - host: api.vitians.in
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: demo-service
+            name: api-service
             port:
-              number: 80  # Must match `service.yaml`
+              number: 80
   tls:
   - hosts:
-    - demo.vitians.in
-    secretName: demo-tls
+    - api.vitians.in
+    secretName: api-tls

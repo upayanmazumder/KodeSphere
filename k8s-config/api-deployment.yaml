@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-app
+  name: api-server
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: demo-app
+      app: api-server
   template:
     metadata:
       labels:
-        app: demo-app
+        app: api-server
     spec:
       containers:
-      - name: smart-home-app
-        image: ghcr.io/upayanmazumder/smart-home-system/app:latest
+      - name: api-container
+        image: ghcr.io/upayanmazumder/kodesphere/k8s:latest
         ports:
-        - containerPort: 3000
+        - containerPort: 8000
