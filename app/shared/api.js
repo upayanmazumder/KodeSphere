@@ -9,5 +9,5 @@ const API_URL =
 
 console.log("API URL:", API_URL);
 
-export const K8S_API_URL = "https://k8s.vitians.in";
+export const K8S_API_URL = "https://api.vitians.in";
 export default API_URL;
