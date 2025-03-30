@@ -1,16 +1,11 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
-import os
-from dotenv import load_dotenv
-
-# Load environment variables from a .env file
-load_dotenv()
 
 app = FastAPI()
 
 @app.post("/deploy")
 async def deploy_app(payload: dict):
-    image = payload.get("image") or os.getenv("DEFAULT_IMAGE")  # Fallback to env variable if not provided
+    image = payload.get("image")
     domains = payload.get("domains")  # List of domains, each with its own ports
 
     if not image or not domains:
@@ -31,9 +26,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {app_name}-deployment
-  namespace: {os.getenv("K8S_NAMESPACE", "default")}
+  namespace: default
 spec:
-  replicas: {os.getenv("DEPLOYMENT_REPLICAS", "1")}
+  replicas: 1
   selector:
     matchLabels:
       app: {app_name}
@@ -56,7 +51,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {app_name}-service
-  namespace: {os.getenv("K8S_NAMESPACE", "default")}
+  namespace: default
 spec:
   selector:
     app: {app_name}
@@ -73,9 +68,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {app_name}-ingress
-  namespace: {os.getenv("K8S_NAMESPACE", "default")}
+  namespace: default
   annotations:
-    cert-manager.io/cluster-issuer: {os.getenv("CERT_MANAGER_ISSUER", "letsencrypt")}
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
   rules:
