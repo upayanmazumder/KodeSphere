@@ -1,37 +1,20 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
-import tempfile
-import os
+import yaml
 
 app = FastAPI()
-
-def apply_k8s_manifest(manifest_content: str):
-    """Safely apply a Kubernetes manifest using a temporary file."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as temp_file:
-        temp_file.write(manifest_content.encode())
-        temp_file_path = temp_file.name
-
-    try:
-        subprocess.run(["kubectl", "apply", "-f", temp_file_path], check=True, text=True)
-    except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail=f"Error deploying app: {str(e)}")
-    finally:
-        os.remove(temp_file_path)  # Cleanup temp file
 
 @app.post("/deploy")
 async def deploy_app(payload: dict):
     image = payload.get("image")
-    domains = payload.get("domains")  # Dictionary { "domain.com": port }
-    ports = payload.get("ports", [])  # List of exposed ports
-    env_vars = payload.get("env", {})  # Dictionary of environment variables
+    url = payload.get("url")
+    ports = payload.get("ports", [80])  # Default to port 80
 
-    if not image or not domains or not isinstance(domains, dict) or not ports:
-        raise HTTPException(status_code=400, detail="Invalid or missing required fields")
+    if not image or not url or not ports:
+        raise HTTPException(status_code=400, detail="Missing required fields")
 
-    # Extract app name from the first domain
-    app_name = list(domains.keys())[0].split(".")[0]  
+    app_name = url.split(".")[0]  # Extract subdomain
 
-    # Generate Kubernetes YAML files
     deployment_yaml = f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -54,12 +37,7 @@ spec:
         ports:
 """ + "".join(f"""
         - containerPort: {port}
-""" for port in ports) + """
-        env:
-""" + "".join(f"""
-        - name: {key}
-          value: "{value}"
-""" for key, value in env_vars.items())
+""" for port in ports)
 
     service_yaml = f"""
 apiVersion: v1
@@ -88,8 +66,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-""" + "".join(f"""
-  - host: {domain}
+  - host: {url}
     http:
       paths:
       - path: /
@@ -98,20 +75,19 @@ spec:
           service:
             name: {app_name}-service
             port:
-              number: {port}
-""" for domain, port in domains.items()) + """
+              number: {ports[0]}
   tls:
-""" + "".join(f"""
   - hosts:
-    - {domain}
+    - {url}
     secretName: {app_name}-tls
-""" for domain in domains.keys())
+"""
 
+    # Apply Kubernetes manifests
     try:
-        apply_k8s_manifest(deployment_yaml)
-        apply_k8s_manifest(service_yaml)
-        apply_k8s_manifest(ingress_yaml)
-    except HTTPException as e:
-        raise e  # Forward the error response
+        subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
+        subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
+        subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"Error deploying app: {str(e)}")
 
-    return {"message": f"Deployment successful for {list(domains.keys())}", "deployment": app_name}
+    return {"message": f"Deployment successful for {url}", "deployment": app_name}
