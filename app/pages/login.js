@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (session) {
-      router.push("/dashboard");
+      router.push("/repositories");
     }
   }, [session, router]);
 

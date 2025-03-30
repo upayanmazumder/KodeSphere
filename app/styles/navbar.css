@@ -1,0 +1,9 @@
+.fixed-button {
+  position: fixed;
+  top: 20px; /* Distance from top */
+  left: 20px;
+}
+
+.navigation-buttons {
+  margin: 10px;
+}

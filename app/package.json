@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@octokit/rest": "^21.1.1",
+    "@popperjs/core": "^2.11.8",
     "axios": "^1.8.4",
+    "bootstrap": "^5.3.3",
     "dotenv": "^16.4.7",
     "gsap": "^3.12.7",
     "next": "15.2.4",

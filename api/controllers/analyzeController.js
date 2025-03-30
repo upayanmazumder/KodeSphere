@@ -1,9 +1,10 @@
 const axios = require("axios");
-const { Octokit } = require("@octokit/rest");
 
 // @desc  Analyze the repositories of a user
 // @route GET /analyze-repo
 const analyzeUserRepo = async (req, res) => {
+  const { Octokit } = await import("@octokit/rest");
+
   try {
     const { repoUrl } = req.query;
 
