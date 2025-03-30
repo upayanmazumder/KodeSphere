@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import API_URL from "../shared/api";
+import styles from "../styles/dashboard.module.css";
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -15,13 +16,13 @@ export default function Dashboard() {
     if (!session) {
       router.push("/login");
     } else {
-      const githubUserId = session?.user?.id; // Extract GitHub User ID
+      const githubUserId = session?.user?.id;
       if (!githubUserId) {
         console.error("GitHub user ID is missing from session data.");
         return;
       }
 
-      fetch(`${API_URL}/github/repos?githubUserId=${githubUserId}`) // Pass githubUserId as query param
+      fetch(`${API_URL}/github/repos?githubUserId=${githubUserId}`)
         .then((res) => res.json())
         .then((data) => {
           console.log("Fetched Repositories:", data.repos);
@@ -64,49 +65,48 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Link Github</a>
-      </div>
-      <h1>Your Repositories</h1>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          marginTop: "20px",
-        }}
-      >
-        {repos.map((repo) => (
-          <div
-            key={repo.id}
-            className="repo-tile"
-            style={{ padding: "10px", border: "1px solid #ccc" }}
-          >
-            <h2>{repo.name}</h2>
-            <p>Repo Name: {repo.full_name}</p>
-            <p>Repo ID: {repo.id}</p>
-            <button
-              onClick={() => handleSetupDocker(repo.full_name)}
-              style={{ marginTop: "10px", color: "white" }}
-            >
-              Setup Docker
-            </button>
-          </div>
-        ))}
+    <div className={styles.dashboardContainer}>
+      <div className={styles.sidebar}>
+        <div className={styles.logo}>KodeSphere</div>
+        <div className={styles.navItems}>
+          <button className={styles.navButton}>Dashboard</button>
+          <button className={styles.navButton}>Repositories</button>
+          <button className={styles.navButton}>Deployments</button>
+          <button className={styles.navButton}>Settings</button>
+        </div>
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          Logout
+        </button>
       </div>
 
-      <p>Username: {session?.user?.login}</p>
-      <p>GitHub Email: {session?.user?.email}</p>
-      {session?.user?.image && <img src={session?.user?.image} alt="Profile" />}
+      <div className={styles.mainContent}>
+        <h1 className={styles.welcomeText}>
+          Welcome back, {session?.user?.name}!
+        </h1>
+        <input
+          type="text"
+          placeholder="Search repositories and projects..."
+          className={styles.searchBar}
+        />
 
-      <a href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}>Sign in</a>
-      <button
-        onClick={handleLogout}
-        style={{ marginBottom: "20px", color: "white" }}
-      >
-        Logout
-      </button>
+        <h2 className={styles.projectsHeading}>Projects</h2>
+
+        <div className={styles.repoGrid}>
+          {repos.map((repo) => (
+            <div key={repo.id} className={styles.repoCard}>
+              <h2>{repo.name}</h2>
+              <p>Repo Name: {repo.full_name}</p>
+              <p>Repo ID: {repo.id}</p>
+              <button
+                onClick={() => handleSetupDocker(repo.full_name)}
+                className={styles.setupDockerButton}
+              >
+                Setup Docker
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
