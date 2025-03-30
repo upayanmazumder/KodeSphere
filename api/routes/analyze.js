@@ -1,14 +1,11 @@
 const express = require("express");
 const axios = require("axios");
+const { Octokit } = require("@octokit/rest");
 
 const router = express.Router();
 
-const getAIresponse = require("./getAIresponse");
-
 // Repository analysis route
 router.post("/analyze-repo", async (req, res) => {
-  const { Octokit } = await import("@octokit/rest");
-
   try {
     const { repoUrl } = req.body;
 
@@ -47,13 +44,11 @@ router.post("/analyze-repo", async (req, res) => {
       });
     }
 
-    console.log("Repository Contents:", contents);
-
     // Analyze repository
-    const configs = await analyzeRepository(contents);
+    const projectType = await analyzeRepository(contents);
 
     // Generate Docker configuration
-    const dockerConfig = generateDockerConfig(configs);
+    const dockerConfig = generateDockerConfig(projectType);
 
     res.json({
       dockerfile: dockerConfig.dockerfile,
@@ -71,33 +66,32 @@ router.post("/analyze-repo", async (req, res) => {
 // Repository analysis with Perplexity integration
 async function analyzeRepository(contents) {
   const fileNames = contents.map((item) => item.name);
+  const fileExtensions = new Set(
+    fileNames.map((name) => name.split(".").pop())
+  );
 
-  // // First check for obvious tech stack indicators
-  // if (fileNames.includes("package.json")) return "node";
-  // if (fileNames.includes("requirements.txt")) return "python";
-  // if (fileNames.includes("pom.xml")) return "java";
-  // if (fileNames.includes("go.mod")) return "golang";
+  // First check for obvious tech stack indicators
+  if (fileNames.includes("package.json")) return "node";
+  if (fileNames.includes("requirements.txt")) return "python";
+  if (fileNames.includes("pom.xml")) return "java";
+  if (fileNames.includes("go.mod")) return "golang";
 
   // Fallback to AI analysis
-
-  console.log("File Names:", fileNames);
-
-  const nameString = fileNames.join(", ");
-
-  const aiPrompt1 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the dockerfile for the project. Dont say here it is or anything in the response, just give me the dockerfile contents. There should not be anything else in your response other than dockerfile contents. The content should start from FROM command directly`;
-
-  const aiPrompt2 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the docker-compose.yml for the project. Dont say here it is or anything in the response, just give me the docker-compose.yml contents. There should not be anything else in your response other than docker-compose.yml contents.`;
-
   try {
-    const aiResponseDockerfile = await getAIresponse(aiPrompt1);
-    const aiResponseDockerCompose = await getAIresponse(aiPrompt2, true);
-
-    const configs = {
-      dockerfile: aiResponseDockerfile,
-      dockerCompose: aiResponseDockerCompose,
-    };
-
-    return configs;
+    const response = await axios.post(
+      "https://api.perplexity.ai/analyze",
+      {
+        files: fileNames,
+        context: "Determine appropriate Docker configuration",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data.projectType || "node";
   } catch (error) {
     console.error("Perplexity API Error:", error);
     return "node"; // Fallback to Node.js
@@ -105,8 +99,67 @@ async function analyzeRepository(contents) {
 }
 
 // Docker configuration generator
-function generateDockerConfig(configs) {
-  return configs;
+function generateDockerConfig(projectType) {
+  const configs = {
+    node: {
+      dockerfile: `# Optimized Node.js Dockerfile
+FROM node:16-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+COPY . .
+RUN npm run build
+
+FROM node:16-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+EXPOSE 3000
+USER node
+CMD ["npm", "start"]`,
+      dockerCompose: `# Node.js Docker Compose
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./:/app
+      - /app/node_modules`,
+    },
+    python: {
+      dockerfile: `# Python Dockerfile
+FROM python:3.8-slim-buster AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --user -r requirements.txt
+
+FROM python:3.8-slim-buster
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY . .
+ENV PATH=/root/.local/bin:$PATH
+EXPOSE 5000
+CMD ["python", "app.py"]`,
+      dockerCompose: `# Python Docker Compose
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./:/app`,
+    },
+  };
+
+  return configs[projectType] || configs.node;
 }
 
 module.exports = router;
