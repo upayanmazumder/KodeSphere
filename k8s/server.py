@@ -7,6 +7,7 @@ app = FastAPI()
 async def deploy_app(payload: dict):
     image = payload.get("image")
     domains = payload.get("domains")  # List of domains, each with its own ports
+    env_variables = payload.get("env_variables", {})  # Dictionary of environment variables
 
     if not image or not domains:
         raise HTTPException(status_code=400, detail="Missing required fields")
@@ -19,6 +20,14 @@ async def deploy_app(payload: dict):
             raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
 
         app_name = url.split(".")[0]  # Extract subdomain
+
+        # Build environment variable section if any are provided
+        env_yaml = ""
+        if env_variables:
+            env_yaml = "".join(f"""
+        - name: {key}
+          value: {value}
+""" for key, value in env_variables.items())
 
         # Create Deployment YAML
         deployment_yaml = f"""
@@ -43,7 +52,10 @@ spec:
         ports:
 """ + "".join(f"""
         - containerPort: {port}
-""" for port in ports)
+""" for port in ports) + f"""
+        env:
+{env_yaml}  # Add environment variables here
+"""
 
         # Create Service YAML
         service_yaml = f"""
@@ -78,7 +90,7 @@ spec:
     http:
       paths:
 """ + "".join(f"""
-      - path: /
+      - path: / 
         pathType: Prefix
         backend:
           service:
