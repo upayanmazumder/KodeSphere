@@ -1,0 +1,42 @@
+/* DeploymentForm.module.css */
+
+.container {
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .form-label {
+    font-weight: bold;
+  }
+  
+  .card {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .card-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .alert {
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .btn-secondary,
+  .btn-primary {
+    margin-top: 10px;
+  }
+  

@@ -1,36 +1,46 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"],  # Allow all origins
+  allow_credentials=True,
+  allow_methods=["*"],  # Allow all HTTP methods
+  allow_headers=["*"],  # Allow all headers
+)
+
 @app.post("/deploy")
 async def deploy_app(payload: dict):
-    image = payload.get("image")
-    domains = payload.get("domains")  # List of domains, each with its own ports
-    env_variables = payload.get("env_variables", {})  # Dictionary of environment variables
+  image = payload.get("image")
+  domains = payload.get("domains")  # List of domains, each with its own ports
+  env_variables = payload.get("env_variables", {})  # Dictionary of environment variables
 
-    if not image or not domains:
-        raise HTTPException(status_code=400, detail="Missing required fields")
+  if not image or not domains:
+    raise HTTPException(status_code=400, detail="Missing required fields")
 
-    for domain in domains:
-        url = domain.get("url")
-        ports = domain.get("ports", [80])  # Default to port 80
+  for domain in domains:
+    url = domain.get("url")
+    ports = domain.get("ports", [80])  # Default to port 80
 
-        if not url or not ports:
-            raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
+    if not url or not ports:
+      raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
 
-        app_name = url.split(".")[0]  # Extract subdomain
+    app_name = url.split(".")[0]  # Extract subdomain
 
-        # Build environment variable section if any are provided
-        env_yaml = ""
-        if env_variables:
-            env_yaml = "".join(f"""
-        - name: {key}
-          value: {value}
+    # Build environment variable section if any are provided
+    env_yaml = ""
+    if env_variables:
+      env_yaml = "".join(f"""
+    - name: {key}
+      value: {value}
 """ for key, value in env_variables.items())
 
-        # Create Deployment YAML
-        deployment_yaml = f"""
+    # Create Deployment YAML
+    deployment_yaml = f"""
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,26 +49,26 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: {app_name}
+  matchLabels:
+    app: {app_name}
   template:
-    metadata:
-      labels:
-        app: {app_name}
-    spec:
-      containers:
-      - name: {app_name}-container
-        image: {image}
-        ports:
+  metadata:
+    labels:
+    app: {app_name}
+  spec:
+    containers:
+    - name: {app_name}-container
+    image: {image}
+    ports:
 """ + "".join(f"""
-        - containerPort: {port}
+    - containerPort: {port}
 """ for port in ports) + f"""
-        env:
+    env:
 {env_yaml}  # Add environment variables here
 """
 
-        # Create Service YAML
-        service_yaml = f"""
+    # Create Service YAML
+    service_yaml = f"""
 apiVersion: v1
 kind: Service
 metadata:
@@ -66,50 +76,50 @@ metadata:
   namespace: default
 spec:
   selector:
-    app: {app_name}
+  app: {app_name}
   ports:
 """ + "".join(f"""
   - protocol: TCP
-    port: {port}
-    targetPort: {port}
+  port: {port}
+  targetPort: {port}
 """ for port in ports)
 
-        # Create Ingress YAML
-        ingress_yaml = f"""
+    # Create Ingress YAML
+    ingress_yaml = f"""
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {app_name}-ingress
   namespace: default
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
+  cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
   rules:
   - host: {url}
-    http:
-      paths:
+  http:
+    paths:
 """ + "".join(f"""
-      - path: / 
-        pathType: Prefix
-        backend:
-          service:
-            name: {app_name}-service
-            port:
-              number: {port}
+    - path: / 
+    pathType: Prefix
+    backend:
+      service:
+      name: {app_name}-service
+      port:
+        number: {port}
 """ for port in ports) + f"""
   tls:
   - hosts:
-    - {url}
-    secretName: {app_name}-tls
+  - {url}
+  secretName: {app_name}-tls
 """
 
-        # Apply Kubernetes manifests for each domain and its configuration
-        try:
-            subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
-        except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"Error deploying app for {url}: {str(e)}")
+    # Apply Kubernetes manifests for each domain and its configuration
+    try:
+      subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
+      subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
+      subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+      raise HTTPException(status_code=500, detail=f"Error deploying app for {url}: {str(e)}")
 
-    return {"message": "Deployment successful for all domains"}
+  return {"message": "Deployment successful for all domains"}
