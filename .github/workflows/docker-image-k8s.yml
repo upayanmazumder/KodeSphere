@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build ./k8s ghcr.io/upayanmazumder/kodesphere/k8s:latest
+          docker build ./k8s --tag ghcr.io/upayanmazumder/kodesphere/k8s:latest
 
       - name: Push Docker image
         run: |
