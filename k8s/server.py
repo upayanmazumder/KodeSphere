@@ -8,14 +8,12 @@ app = FastAPI()
 async def deploy_app(payload: dict):
     image = payload.get("image")
     url = payload.get("url")
-    ports = payload.get("ports", [80])
-    env_vars = payload.get("env", {})
-    domain_port_map = payload.get("domainPortMap", {})
+    ports = payload.get("ports", [80])  # Default to port 80
 
     if not image or not url or not ports:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
-    app_name = url.split(".")[0]
+    app_name = url.split(".")[0]  # Extract subdomain
 
     deployment_yaml = f"""
 apiVersion: apps/v1
@@ -39,12 +37,7 @@ spec:
         ports:
 """ + "".join(f"""
         - containerPort: {port}
-""" for port in ports) + "".join(
-    f"""
-        env:
-        - name: {key}
-          value: {value}
-""" for key, value in env_vars.items()) if env_vars else ""
+""" for port in ports)
 
     service_yaml = f"""
 apiVersion: v1
@@ -58,7 +51,7 @@ spec:
   ports:
 """ + "".join(f"""
   - protocol: TCP
-    port: {domain_port_map.get(url, ports[0])}  # Use mapped port for this domain, or fallback to the first port in ports
+    port: {port}
     targetPort: {port}
 """ for port in ports)
 
@@ -82,13 +75,14 @@ spec:
           service:
             name: {app_name}-service
             port:
-              number: {domain_port_map.get(url, ports[0])}  # Use mapped port
+              number: {ports[0]}
   tls:
   - hosts:
     - {url}
     secretName: {app_name}-tls
 """
 
+    # Apply Kubernetes manifests
     try:
         subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
         subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
