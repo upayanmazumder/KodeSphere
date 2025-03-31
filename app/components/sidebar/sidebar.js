@@ -7,7 +7,7 @@ export default function Sidebar() {
   };
 
   const handleGithub = () => {
-    window.location.href = "/github";
+    window.location.href = "/githublogin";
   };
 
   const handleImport = () => {

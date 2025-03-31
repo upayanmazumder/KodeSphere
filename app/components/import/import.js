@@ -1,197 +1,232 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./import.module.css";
 import { K8S_API_URL } from "@/shared/api";
 
 const Import = () => {
   const [formData, setFormData] = useState({
     image: "",
-    domains: [{ url: "", ports: "" }],
+    domains: [{ subdomain: "", url: "", ports: "" }],
     env_variables: [{ key: "", value: "" }],
   });
+  const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [githubUsername, setGithubUsername] = useState("");
+  const [fetchingUsername, setFetchingUsername] = useState(true);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        if (!response.ok) throw new Error("Failed to fetch session");
+        const session = await response.json();
+        if (session?.user?.login) {
+          setGithubUsername(session.user.login);
+        } else {
+          throw new Error("GitHub username not found.");
+        }
+      } catch (error) {
+        setErrorMessage(error.message);
+      } finally {
+        setFetchingUsername(false);
+      }
+    };
+    fetchUsername();
+  }, []);
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleArrayChange = (field, index, key, value) => {
+    setFormData((prev) => {
+      const updatedArray = [...prev[field]];
+      updatedArray[index] = {
+        ...updatedArray[index],
+        [key]: key === "subdomain" ? value : value.trim(),
+        ...(key === "subdomain" && githubUsername
+          ? { url: `${value}-${githubUsername}.vitians.in` }
+          : {}),
+      };
+      return { ...prev, [field]: updatedArray };
+    });
+  };
+
+  const addField = (field, defaultValue) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: [...prev[field], defaultValue],
+    }));
+  };
+
+  const isValidPortFormat = (ports) => {
+    return /^\d+(,\d+)*$/.test(ports);
+  };
+
+  const isFormValid = () => {
+    return (
+      formData.image.trim() !== "" &&
+      formData.domains.every(
+        (d) => d.subdomain.trim() !== "" && isValidPortFormat(d.ports)
+      ) &&
+      formData.env_variables.every(
+        (env) => env.key.trim() !== "" && env.value.trim() !== ""
+      )
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid()) {
+      setErrorMessage("Please fill in all required fields correctly.");
+      return;
+    }
+
     setSuccessMessage("");
     setErrorMessage("");
+    setLoading(true);
 
     const payload = {
       image: formData.image,
-      domains: formData.domains.map((domain) => ({
-        url: domain.url,
-        ports: domain.ports.split(",").map((port) => parseInt(port.trim())),
+      domains: formData.domains.map(({ url, ports }) => ({
+        url,
+        ports: ports.split(",").map((port) => parseInt(port.trim(), 10)),
       })),
-      env_variables: formData.env_variables.reduce((acc, curr) => {
-        if (curr.key && curr.value) acc[curr.key] = curr.value;
-        return acc;
-      }, {}),
+      env_variables: Object.fromEntries(
+        formData.env_variables.map(({ key, value }) => [key, value])
+      ),
     };
 
     try {
       const response = await fetch(`${K8S_API_URL}/deploy`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const result = await response.json();
-
       if (response.ok) {
         setSuccessMessage(result.message);
       } else {
-        const errorDetail = result.detail || "Unknown error occurred";
-        const failedDomain =
-          errorDetail.match(/Error deploying app for (.*?):/)?.[1] || "";
-        setErrorMessage(
-          `${errorDetail} ${failedDomain ? `(Domain: ${failedDomain})` : ""}`
-        );
+        setErrorMessage(result.detail || "Unknown error occurred.");
       }
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("Failed to connect to deployment server");
+      setErrorMessage("Failed to connect to the deployment server.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addDomain = () => {
-    setFormData((prev) => ({
-      ...prev,
-      domains: [...prev.domains, { url: "", ports: "" }],
-    }));
-  };
-
-  const addEnvVar = () => {
-    setFormData((prev) => ({
-      ...prev,
-      env_variables: [...prev.env_variables, { key: "", value: "" }],
-    }));
-  };
-
   return (
-    <form onSubmit={handleSubmit} className={styles.container}>
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className={`${styles.alert} ${styles["alert-success"]}`}>
-          ✅ {successMessage}
-        </div>
-      )}
-
-      {errorMessage && (
-        <div className={`${styles.alert} ${styles["alert-danger"]}`}>
-          ❌ {errorMessage}
-        </div>
-      )}
-
-      {/* Image Input */}
-      <div className="mb-3">
-        <label className={styles["form-label"]}>Docker Image</label>
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div id="image">
+        <label>Docker Image</label>
         <input
           type="text"
-          className="form-control"
+          placeholder="e.g., myapp:latest"
           value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+          onChange={(e) => handleInputChange("image", e.target.value)}
           required
         />
       </div>
 
-      {/* Domains Section */}
-      <div className={`card ${styles.card}`}>
-        <div className="card-body">
-          <h5 className={styles["card-title"]}>Domain Mappings</h5>
-          {formData.domains.map((domain, index) => (
-            <div key={index} className="row mb-2">
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Subdomain URL (e.g., mysite.vitians.in)"
-                  value={domain.url}
-                  onChange={(e) => {
-                    const newDomains = [...formData.domains];
-                    newDomains[index].url = e.target.value;
-                    setFormData({ ...formData, domains: newDomains });
-                  }}
-                  required
-                />
-              </div>
-              <div className="col-md-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Ports (comma-separated)"
-                  value={domain.ports}
-                  onChange={(e) => {
-                    const newDomains = [...formData.domains];
-                    newDomains[index].ports = e.target.value;
-                    setFormData({ ...formData, domains: newDomains });
-                  }}
-                  required
-                />
-              </div>
+      <div id="domains">
+        <h5>Domain Mappings</h5>
+        {formData.domains.map((domain, index) => (
+          <div key={index} className={styles.domain}>
+            <div className={styles.domainField}>
+              <input
+                type="text"
+                placeholder="Subdomain"
+                value={domain.subdomain}
+                onChange={(e) =>
+                  handleArrayChange(
+                    "domains",
+                    index,
+                    "subdomain",
+                    e.target.value
+                  )
+                }
+                required
+              />
+              <input
+                type="text"
+                placeholder="Ports (comma-separated)"
+                value={domain.ports}
+                onChange={(e) =>
+                  handleArrayChange("domains", index, "ports", e.target.value)
+                }
+                required
+              />
             </div>
-          ))}
-          <button
-            type="button"
-            className={`btn btn-secondary ${styles["btn-secondary"]}`}
-            onClick={addDomain}
-          >
-            Add Domain
-          </button>
-        </div>
+            {domain.url && (
+              <p className={styles.generatedDomain}>
+                The traffic to this port will be routed through {"  "}
+                <a href={`https://${domain.url}`} target="_blank">
+                  https://{domain.url}
+                </a>
+              </p>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          className={styles.addButton}
+          onClick={() =>
+            addField("domains", { subdomain: "", url: "", ports: "" })
+          }
+        >
+          ➕ Add Domain
+        </button>
       </div>
 
-      {/* Environment Variables */}
-      <div className={`card ${styles.card}`}>
-        <div className="card-body">
-          <h5 className={styles["card-title"]}>Environment Variables</h5>
-          {formData.env_variables.map((env, index) => (
-            <div key={index} className="row mb-2">
-              <div className="col-md-5">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Variable Name"
-                  value={env.key}
-                  onChange={(e) => {
-                    const newEnv = [...formData.env_variables];
-                    newEnv[index].key = e.target.value;
-                    setFormData({ ...formData, env_variables: newEnv });
-                  }}
-                />
-              </div>
-              <div className="col-md-5">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Variable Value"
-                  value={env.value}
-                  onChange={(e) => {
-                    const newEnv = [...formData.env_variables];
-                    newEnv[index].value = e.target.value;
-                    setFormData({ ...formData, env_variables: newEnv });
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            className={`btn btn-secondary ${styles["btn-secondary"]}`}
-            onClick={addEnvVar}
-          >
-            Add Environment Variable
-          </button>
-        </div>
+      <div id="environment">
+        <h5>Environment Variables</h5>
+        {formData.env_variables.map((env, index) => (
+          <div key={index} className={styles.envField}>
+            <input
+              type="text"
+              placeholder="Variable Name"
+              value={env.key}
+              onChange={(e) =>
+                handleArrayChange("env_variables", index, "key", e.target.value)
+              }
+            />
+            <input
+              type="text"
+              placeholder="Variable Value"
+              value={env.value}
+              onChange={(e) =>
+                handleArrayChange(
+                  "env_variables",
+                  index,
+                  "value",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          className={styles.addButton}
+          onClick={() => addField("env_variables", { key: "", value: "" })}
+        >
+          ➕ Add Variable
+        </button>
       </div>
 
       <button
         type="submit"
-        className={`btn btn-primary ${styles["btn-primary"]}`}
+        disabled={loading || !isFormValid() || fetchingUsername}
+        className={styles.submitButton}
       >
-        Deploy
+        {loading ? "Deploying..." : "Deploy"}
       </button>
+      {successMessage && (
+        <div className={styles.success}>✅ {successMessage}</div>
+      )}
+      {errorMessage && <div className={styles.error}>❌ {errorMessage}</div>}
     </form>
   );
 };

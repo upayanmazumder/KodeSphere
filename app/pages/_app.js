@@ -1,5 +1,6 @@
 "use client";
 import { SessionProvider, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import "../styles/globals.css";
 import Header from "../components/header/header";
 import Sidebar from "../components/sidebar/sidebar";
@@ -7,10 +8,11 @@ import Footer from "../components/footer/footer";
 
 function Layout({ children }) {
   const { data: session } = useSession();
+  const router = useRouter();
 
   return (
     <>
-     {session && <Header/>}
+      {router.pathname !== "/" && <Header />}
       {session && <Sidebar />}
       {children}
       {session && <Footer />}
