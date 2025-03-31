@@ -40,16 +40,17 @@
 .closeButton {
     margin-top: 10px;
     padding: 10px;
-    background: #007bff;
+    background: transparent;
     color: white;
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    font-size: 1rem;
 }
 
 .nextButton:hover,
 .closeButton:hover {
-    background: #0056b3;
+    background: transparent;
     box-shadow: none;
 }
 

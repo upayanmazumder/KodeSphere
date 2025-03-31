@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import API_URL from "../../shared/api";
 import styles from "./dashboard.module.css";
 import Modal from "./modal/modal";
+import { SiPerplexity } from "react-icons/si";
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -68,6 +69,15 @@ export default function Dashboard() {
 
   const closeModal = () => setModalData(null);
 
+  const handleInstallClick = () => {
+    const installUrl = process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL;
+    if (installUrl) {
+      window.open(`${installUrl}/installations/select_target`, "_blank");
+    } else {
+      console.error("NEXT_PUBLIC_GITHUB_APP_INSTALL_URL is not defined.");
+    }
+  };
+
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.mainContent}>
@@ -99,9 +109,23 @@ export default function Dashboard() {
                       className={styles.analyzeButton}
                       disabled={analyzingRepo === repo.full_name}
                     >
-                      {analyzingRepo === repo.full_name
-                        ? "Analyzing..."
-                        : "Analyze Repo"}
+                      {analyzingRepo === repo.full_name ? (
+                        <>
+                          <SiPerplexity
+                            className={styles.icon}
+                            style={{ marginRight: "var(--margin-tiny)" }}
+                          />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <SiPerplexity
+                            className={styles.icon}
+                            style={{ marginRight: "var(--margin-tiny)" }}
+                          />
+                          Analyze Repo
+                        </>
+                      )}
                     </button>
                   </div>
                 ))
@@ -120,7 +144,14 @@ export default function Dashboard() {
           className={styles.profileImage}
         />
         <p className={styles.username}>@{session?.user?.name}</p>
-        <button className={styles.installButton}>Install GitHub</button>
+        <div className={styles.bottom}>
+          <p className={styles.installText}>
+            Repositories not showing up? Ensure you have the app installed
+          </p>
+          <button className={styles.installButton} onClick={handleInstallClick}>
+            Install GitHub App
+          </button>
+        </div>
       </div>
 
       {modalData && <Modal modalData={modalData} closeModal={closeModal} />}

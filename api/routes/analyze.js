@@ -69,9 +69,9 @@ async function analyzeRepository(contents) {
 
   const nameString = fileNames.join(", ");
 
-  const aiPrompt1 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the dockerfile for the project. Dont say here it is or anything in the response, just give me the dockerfile contents. There should not be anything else in your response other than dockerfile contents. The content should start from FROM command directly`;
+  const aiPrompt1 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the dockerfile for the project. Dont say here it is or anything in the response, just give me the dockerfile contents. There should not be anything else in your response other than dockerfile contents. The content should start from FROM text directly`;
 
-  const aiPrompt2 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the docker-compose.yml for the project. Dont say here it is or anything in the response, just give me the docker-compose.yml contents. There should not be anything else in your response other than docker-compose.yml contents.`;
+  const aiPrompt2 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the docker-compose.yml for the project. Dont say here it is or anything in the response, just give me the docker-compose.yml contents. There should not be anything else in your response other than docker-compose.yml contents. The content should start from services: text directly`;
 
   try {
     const aiResponseDockerfile = await getAIresponse(aiPrompt1);

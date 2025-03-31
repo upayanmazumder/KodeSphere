@@ -1,6 +1,8 @@
 import styles from "./modal.module.css";
 import { useState } from "react";
 import { MdContentCopy } from "react-icons/md";
+import { IoIosExit } from "react-icons/io";
+import { GrNext } from "react-icons/gr";
 
 export default function Modal({ modalData, closeModal }) {
   const [modalStep, setModalStep] = useState(0);
@@ -20,7 +22,14 @@ export default function Modal({ modalData, closeModal }) {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         {modalData.error ? (
-          <p className={styles.errorText}>{modalData.error}</p>
+          <>
+            <p className={styles.errorText}>
+              There was an error analysing your repository!
+            </p>
+            <button onClick={closeModal} className={styles.closeButton}>
+              <IoIosExit />
+            </button>
+          </>
         ) : (
           <>
             {modalStep === 0 && modalData.dockerfile && (
@@ -34,7 +43,7 @@ export default function Modal({ modalData, closeModal }) {
                 </button>
                 <pre className={styles.codeBlock}>{modalData.dockerfile}</pre>
                 <button onClick={nextStep} className={styles.nextButton}>
-                  Next
+                  <GrNext />
                 </button>
               </>
             )}
@@ -52,7 +61,7 @@ export default function Modal({ modalData, closeModal }) {
                   {modalData.dockerCompose}
                 </pre>
                 <button onClick={closeModal} className={styles.closeButton}>
-                  Close
+                  <IoIosExit />
                 </button>
               </>
             )}
