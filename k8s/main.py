@@ -57,7 +57,7 @@ spec:
 """
 
 def generate_service_yaml(app_name: str, ports: list) -> str:
-    """Generates Kubernetes Service YAML."""
+    """Generates Kubernetes Service YAML with named ports."""
     return f"""
 apiVersion: v1
 kind: Service
@@ -69,7 +69,8 @@ spec:
     app: "{app_name}"
   ports:
 """ + "".join(f"""
-  - protocol: TCP
+  - name: port-{port}
+    protocol: TCP
     port: {port}
     targetPort: {port}""" for port in ports) + """
   type: ClusterIP
