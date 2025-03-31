@@ -2,6 +2,11 @@
     background: var(--footer-background-color);
     color: #131010;
     padding: var(--padding-medium) var(--padding-large);
+    animation: fadeIn 0.1s ease-in-out;
+}
+
+.footer * {
+    animation: fadeIn 1s ease-in-out;
 }
 
 .footer a {
@@ -39,4 +44,15 @@
 .bottom p {
     font-size: 15px;
     font-weight: 400;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
