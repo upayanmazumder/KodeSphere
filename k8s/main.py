@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
+import tempfile
 from typing import List, Dict, Optional
 
 app = FastAPI()
@@ -10,16 +11,17 @@ async def deploy_app(payload: Dict):
     domains: List[Dict] = payload.get("domains", [])
     deployment_name: Optional[str] = payload.get("name")
     env_vars: Dict[str, str] = payload.get("env", {})
+    namespace: str = payload.get("namespace", "default")
 
     if not image or not domains:
-        raise HTTPException(status_code=400, detail="Missing required fields")
+        raise HTTPException(status_code=400, detail="Missing required fields: 'image' and 'domains' are required")
 
     for domain in domains:
         url = domain.get("url")
         ports = domain.get("ports", [80])
 
         if not url or not ports:
-            raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
+            raise HTTPException(status_code=400, detail="Each domain must have a 'url' and 'ports'")
 
         app_name = deployment_name or url.split(".")[0]
 
@@ -32,7 +34,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {app_name}-deployment
-  namespace: default
+  namespace: {namespace}
 spec:
   replicas: 1
   selector:
@@ -56,7 +58,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {app_name}-service
-  namespace: default
+  namespace: {namespace}
 spec:
   selector:
     app: {app_name}
@@ -68,7 +70,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {app_name}-ingress
-  namespace: default
+  namespace: {namespace}
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
@@ -85,10 +87,17 @@ spec:
 """
 
         try:
-            subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
+            for resource_name, yaml_content in [
+                (f"{app_name}-deployment.yaml", deployment_yaml),
+                (f"{app_name}-service.yaml", service_yaml),
+                (f"{app_name}-ingress.yaml", ingress_yaml),
+            ]:
+                with tempfile.NamedTemporaryFile("w", delete=False, suffix=".yaml") as temp_file:
+                    temp_file.write(yaml_content)
+                    temp_file.flush()
+                    subprocess.run(["kubectl", "apply", "-f", temp_file.name], check=True)
+
         except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"Error deploying app for {url}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error deploying {app_name}: {str(e)}")
 
     return {"message": "Deployment successful for all domains"}
