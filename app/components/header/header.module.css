@@ -1,0 +1,14 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    justify-content: flex-start;
+    background: var(--header-background-color);
+    color: white;
+    padding: 0 var(--padding-large);
+}
+
+.header .logo {
+    filter: invert(100%);
+    margin-right: 30px;
+}

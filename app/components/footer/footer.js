@@ -3,27 +3,25 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer>
+    <footer className={footerStyles.footer}>
       <div className={footerStyles.top}>
-        <div className={footerStyles.links}>
-          <ul className={footerStyles.linkList}>
-            <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <a href="/contact">Contact us</a>
-            </li>
-            <li>
-              <a href="/about">About</a>
-            </li>
-          </ul>
-        </div>
+        <ul className={footerStyles.links}>
+          <li>
+            <Link href="/">Home</Link>
+          </li>
+          <li>
+            <a href="/contact">Contact us</a>
+          </li>
+          <li>
+            <a href="/about">About</a>
+          </li>
+        </ul>
         <div className={footerStyles.branding}>
-          <h2>KodeSphere</h2>
+          <span>kodesphere</span>
         </div>
       </div>
       <div className={footerStyles.bottom}>
-        <p>©2025, KodeSphere Inc.</p>
+        <p>©2025, kodesphere Inc.</p>
       </div>
     </footer>
   );

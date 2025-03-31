@@ -1,3 +1,42 @@
 .footer {
-    background-color: linear-gradient(to right, #8FE6EF, #A5FF93);
+    background: var(--footer-background-color);
+    color: #131010;
+    padding: var(--padding-medium) var(--padding-large);
+}
+
+.footer a {
+    color: black
+}
+
+.top {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.links {
+    display: flex;
+    flex-direction: row;
+    gap: var(--padding-medium);
+    padding: 0;
+}
+
+.links li {
+    font-size: 23px;
+}
+
+.branding span {
+    font-size: 30px;
+    font-weight: 900;
+    -webkit-text-stroke: 1px black;
+}
+
+.bottom {
+    text-align: left;
+}
+
+.bottom p {
+    font-size: 15px;
+    font-weight: 400;
 }

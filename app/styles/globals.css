@@ -4,9 +4,9 @@
 }
 
 :root {
-  --body-background-color: black;
+  --body-background-color: #000000;
   --header-background-color: var(--body-background-color);
-  --footer-background-color: #1f1f1f34;
+  --footer-background-color: linear-gradient(to right, #8FE6EF, #A5FF93);
   --sidebar-background-color: #29292980;
 
   --screen-horizontal-margin: 200px;
