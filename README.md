@@ -87,3 +87,9 @@ Users can update or remove their deployments through API endpoints.
 ## 🏆 Team  
 
 kodesphere is built by **The Orchaestrators**.  
+
+- **Upayan Mazumder** - [upayan.dev](https://upayan.dev) [LinkedIn](https://www.linkedin.com/in/upayanmazumder/)
+- **Atharva Sharma** - [atharvasharma.vercel.app](https://atharvasharma.vercel.app/) [LinkedIn](https://www.linkedin.com/in/atharva-sharma-vit/)
+- **Advik Gupta** - [LinkedIn](https://www.linkedin.com/in/advik-gupta-37a557308)  
+- **Chitrita Gahlot**  
+- **Diya Bajoria**  
