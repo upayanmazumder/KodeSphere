@@ -1,0 +1,39 @@
+.sidebar {
+    background: #353535;
+    width: fit-content;
+    z-index: 1000;
+    position: fixed;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    top: 20vh;
+    margin-left: var(--margin-large);
+    border-radius: var(--border-radius-small);
+    padding: var(--padding-large) var(--padding-small);
+}
+
+.sidebar button {
+    background-color: transparent;
+}
+
+.sidebar button:hover {
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.sidebar button svg {
+    width: 35px;
+    height: 35px;
+    transition: filter 0.2s ease-in-out;
+}
+
+.sidebar button:hover svg {
+    filter: brightness(1.5);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin-medium);
+}
