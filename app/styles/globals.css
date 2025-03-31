@@ -82,6 +82,7 @@ html {
   padding: 0;
   scroll-behavior: smooth;
   overflow-x: hidden;
+  font-size: 22px;
 }
 
 body {
@@ -100,6 +101,7 @@ main {
   min-height: 70vh;
   display: flex;
   flex-direction: column;
+  padding: var(--padding-huge) 0;
 }
 
 h1,

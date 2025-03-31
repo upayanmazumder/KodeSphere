@@ -1,4 +1,8 @@
 .header {
+    top: 0;
+}
+
+.link {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6,6 +10,10 @@
     background: var(--header-background-color);
     color: white;
     padding: 0 var(--padding-large);
+}
+
+.link:hover {
+    color: white;
 }
 
 .logo {
