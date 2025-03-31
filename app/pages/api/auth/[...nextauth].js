@@ -28,7 +28,7 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account) {
-        token.accessToken = account.access_token || token.accessToken; // Keep existing token if undefined
+        token.accessToken = account.access_token || token.accessToken;
       }
       if (profile) {
         token.login = profile.login;
@@ -40,9 +40,8 @@ export default NextAuth({
     async session({ session, token }) {
       console.log("Session Token:", token);
 
-      
       session.user = {
-        ...session.user, // Keep existing session data
+        ...session.user,
         login: token.login,
         id: token.id,
         avatar: token.avatar,
