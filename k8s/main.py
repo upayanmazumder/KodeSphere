@@ -16,14 +16,15 @@ async def deploy_app(payload: Dict):
     if not image or not domains:
         raise HTTPException(status_code=400, detail="Missing required fields: 'image' and 'domains' are required")
 
-    for domain in domains:
+    for index, domain in enumerate(domains):
         url = domain.get("url")
         ports = domain.get("ports", [80])
 
         if not url or not ports:
             raise HTTPException(status_code=400, detail="Each domain must have a 'url' and 'ports'")
 
-        app_name = deployment_name or url.split(".")[0]
+        # Ensure unique names per domain
+        unique_name = f"{deployment_name or url.split('.')[0]}-{index}"
 
         env_yaml = "\n".join(
             f"        - name: {key}\n          value: \"{value}\"" for key, value in env_vars.items()
@@ -33,20 +34,20 @@ async def deploy_app(payload: Dict):
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {app_name}-deployment
+  name: {unique_name}-deployment
   namespace: {namespace}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {app_name}
+      app: {unique_name}
   template:
     metadata:
       labels:
-        app: {app_name}
+        app: {unique_name}
     spec:
       containers:
-      - name: {app_name}-container
+      - name: {unique_name}-container
         image: {image}
         ports:
 """ + "".join(f"\n        - containerPort: {port}" for port in ports) + (
@@ -57,11 +58,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {app_name}-service
+  name: {unique_name}-service
   namespace: {namespace}
 spec:
   selector:
-    app: {app_name}
+    app: {unique_name}
   ports:
 """ + "".join(f"\n  - protocol: TCP\n    port: {port}\n    targetPort: {port}" for port in ports)
 
@@ -69,7 +70,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {app_name}-ingress
+  name: {unique_name}-ingress
   namespace: {namespace}
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
@@ -79,18 +80,18 @@ spec:
   - host: {url}
     http:
       paths:
-""" + "".join(f"\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: {app_name}-service\n            port:\n              number: {port}" for port in ports) + f"""
+""" + "".join(f"\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: {unique_name}-service\n            port:\n              number: {port}" for port in ports) + f"""
   tls:
   - hosts:
     - {url}
-    secretName: {app_name}-tls
+    secretName: {unique_name}-tls
 """
 
         try:
             for resource_name, yaml_content in [
-                (f"{app_name}-deployment.yaml", deployment_yaml),
-                (f"{app_name}-service.yaml", service_yaml),
-                (f"{app_name}-ingress.yaml", ingress_yaml),
+                (f"{unique_name}-deployment.yaml", deployment_yaml),
+                (f"{unique_name}-service.yaml", service_yaml),
+                (f"{unique_name}-ingress.yaml", ingress_yaml),
             ]:
                 with tempfile.NamedTemporaryFile("w", delete=False, suffix=".yaml") as temp_file:
                     temp_file.write(yaml_content)
@@ -98,6 +99,6 @@ spec:
                     subprocess.run(["kubectl", "apply", "-f", temp_file.name], check=True)
 
         except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"Error deploying {app_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error deploying {unique_name}: {str(e)}")
 
     return {"message": "Deployment successful for all domains"}
