@@ -91,10 +91,10 @@
 }
 
 .analyzeButton {
-  background: green;
+  background: #53FF83;
   border: none;
   padding: 8px 12px;
-  color: white;
+  color: rgb(0, 0, 0);
   border-radius: 5px;
   cursor: pointer;
   white-space: nowrap;
@@ -129,9 +129,9 @@
 }
 
 .installButton {
-  background: blue;
+  background: #8FE6EF;
   padding: 8px;
-  color: white;
+  color: rgb(0, 0, 0);
   border: none;
   border-radius: 5px;
   cursor: pointer;
