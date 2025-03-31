@@ -48,7 +48,11 @@ export default function Dashboard() {
     setFiles(null);
 
     try {
-      const response = await fetch(`${API_URL}/github/search-files?owner=${repoFullName.split('/')[0]}&repo=${repoFullName.split('/')[1]}`);
+      const response = await fetch(
+        `${API_URL}/github/search-files?owner=${
+          repoFullName.split("/")[0]
+        }&repo=${repoFullName.split("/")[1]}`
+      );
       const data = await response.json();
 
       if (response.ok) {
@@ -96,7 +100,6 @@ export default function Dashboard() {
     }
   };
 
-
   // 🐳 Setup Docker
   const handleSetupDocker = async (repoName) => {
     try {
@@ -128,19 +131,6 @@ export default function Dashboard() {
 
   return (
     <div className={styles.dashboardContainer}>
-      <div className={styles.sidebar}>
-        <div className={styles.logo}>KodeSphere</div>
-        <div className={styles.navItems}>
-          <button className={styles.navButton}>Dashboard</button>
-          <button className={styles.navButton}>Repositories</button>
-          <button className={styles.navButton}>Deployments</button>
-          <button className={styles.navButton}>Settings</button>
-        </div>
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-
       <div className={styles.mainContent}>
         <h1 className={styles.welcomeText}>
           Welcome back, {session?.user?.name}!
