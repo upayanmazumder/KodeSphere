@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
+import re
 
 app = FastAPI()
 
@@ -7,16 +8,29 @@ def apply_k8s_manifests(yamls: list[str]) -> None:
     """Applies multiple Kubernetes manifests"""
     yaml_combined = "\n---\n".join(yamls)
     try:
-        subprocess.run(["kubectl", "apply", "-f", "-"], input=yaml_combined, text=True, check=True)
+        subprocess.run(
+            ["kubectl", "apply", "-f", "-"],
+            input=yaml_combined,
+            text=True,
+            check=True,
+            capture_output=True
+        )
     except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail=f"Error applying Kubernetes manifests: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Kubectl error: {e.stderr or e.stdout}")
+
+def sanitize_app_name(domain: str) -> str:
+    """Ensures the app name is a valid Kubernetes DNS-1035 label"""
+    app_name = re.sub(r"[^a-z0-9-]", "-", domain.lower())
+    if not app_name[0].isalpha():
+        app_name = "app-" + app_name
+    return app_name.strip("-")
 
 def generate_deployment_yaml(app_name: str, image: str, ports: list, env_vars: dict) -> str:
     """Generates Kubernetes Deployment YAML."""
     env_yaml = "\n".join(
         f"        - name: {key}\n          value: \"{value}\"" for key, value in env_vars.items()
     ) if env_vars else ""
-    
+
     return f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -27,11 +41,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {app_name}
+      app: "{app_name}"
   template:
     metadata:
       labels:
-        app: {app_name}
+        app: "{app_name}"
     spec:
       containers:
       - name: {app_name}-container
@@ -52,9 +66,14 @@ metadata:
   namespace: default
 spec:
   selector:
-    app: {app_name}
+    app: "{app_name}"
   ports:
-""" + "".join(f"\n  - protocol: TCP\n    port: {port}\n    targetPort: {port}" for port in ports)
+""" + "".join(f"""
+  - protocol: TCP
+    port: {port}
+    targetPort: {port}""" for port in ports) + """
+  type: ClusterIP
+"""
 
 def generate_ingress_yaml(app_name: str, domains: list) -> str:
     """Generates Kubernetes Ingress YAML supporting multiple domains."""
@@ -67,13 +86,13 @@ def generate_ingress_yaml(app_name: str, domains: list) -> str:
         pathType: Prefix
         backend:
           service:
-            name: {app_name}-service
+            name: "{app_name}-service"
             port:
               number: {port}
 """ for port in domain['ports']) for domain in domains)
-    
+
     tls_yaml = "\n".join(f"  - hosts:\n    - {domain['url']}\n    secretName: {app_name}-tls" for domain in domains)
-    
+
     return f"""
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -99,7 +118,7 @@ async def deploy_app(payload: dict):
     if not image or not domains:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
-    app_name = domains[0]["url"].split(".")[0]
+    app_name = sanitize_app_name(domains[0]["url"].split(".")[0])
 
     ports = set()
     for domain in domains:
