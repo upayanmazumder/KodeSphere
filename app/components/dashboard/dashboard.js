@@ -64,7 +64,6 @@ export default function Dashboard() {
           className={styles.searchBar}
         />
 
-        <h2 className={styles.projectsHeading}>Projects</h2>
         <div className={styles.repoList}>
           {repos.map((repo) => (
             <div key={repo.id} className={styles.repoTile}>

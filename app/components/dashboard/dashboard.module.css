@@ -21,6 +21,7 @@
   flex-direction: column;
   gap: 20px;
   overflow: hidden;
+  padding: var(--padding-tiny);
 }
 
 .welcomeText {
@@ -49,7 +50,7 @@
 
 .repoList {
   flex: 1;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
   padding-right: 10px;
 }
