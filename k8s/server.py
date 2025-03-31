@@ -3,25 +3,9 @@ import subprocess
 
 app = FastAPI()
 
-@app.post("/deploy")
-async def deploy_app(payload: dict):
-    image = payload.get("image")
-    domains = payload.get("domains")  # List of domains, each with its own ports
-
-    if not image or not domains:
-        raise HTTPException(status_code=400, detail="Missing required fields")
-
-    for domain in domains:
-        url = domain.get("url")
-        ports = domain.get("ports", [80])  # Default to port 80
-
-        if not url or not ports:
-            raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
-
-        app_name = url.split(".")[0]  # Extract subdomain
-
-        # Create Deployment YAML
-        deployment_yaml = f"""
+def generate_deployment_yaml(app_name: str, image: str, ports: list) -> str:
+    """Generates Kubernetes Deployment YAML."""
+    return f"""
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,8 +29,10 @@ spec:
         - containerPort: {port}
 """ for port in ports)
 
-        # Create Service YAML
-        service_yaml = f"""
+
+def generate_service_yaml(app_name: str, ports: list) -> str:
+    """Generates Kubernetes Service YAML."""
+    return f"""
 apiVersion: v1
 kind: Service
 metadata:
@@ -62,8 +48,10 @@ spec:
     targetPort: {port}
 """ for port in ports)
 
-        # Create Ingress YAML
-        ingress_yaml = f"""
+
+def generate_ingress_yaml(app_name: str, url: str, ports: list) -> str:
+    """Generates Kubernetes Ingress YAML."""
+    return f"""
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -92,12 +80,40 @@ spec:
     secretName: {app_name}-tls
 """
 
-        # Apply Kubernetes manifests for each domain and its configuration
-        try:
-            subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
-            subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
-        except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"Error deploying app for {url}: {str(e)}")
+
+def apply_k8s_manifests(deployment_yaml: str, service_yaml: str, ingress_yaml: str) -> None:
+    """Applies Kubernetes manifests using kubectl."""
+    try:
+        subprocess.run("kubectl apply -f -", input=deployment_yaml, shell=True, text=True, check=True)
+        subprocess.run("kubectl apply -f -", input=service_yaml, shell=True, text=True, check=True)
+        subprocess.run("kubectl apply -f -", input=ingress_yaml, shell=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"Error applying Kubernetes manifests: {str(e)}")
+
+
+@app.post("/deploy")
+async def deploy_app(payload: dict):
+    image = payload.get("image")
+    domains = payload.get("domains")  # List of domains, each with its own ports
+
+    if not image or not domains:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+
+    for domain in domains:
+        url = domain.get("url")
+        ports = domain.get("ports", [80])  # Default to port 80
+
+        if not url or not ports:
+            raise HTTPException(status_code=400, detail="Each domain must have a URL and ports")
+
+        app_name = url.split(".")[0]  # Extract subdomain
+
+        # Generate Kubernetes YAMLs
+        deployment_yaml = generate_deployment_yaml(app_name, image, ports)
+        service_yaml = generate_service_yaml(app_name, ports)
+        ingress_yaml = generate_ingress_yaml(app_name, url, ports)
+
+        # Apply Kubernetes manifests
+        apply_k8s_manifests(deployment_yaml, service_yaml, ingress_yaml)
 
     return {"message": "Deployment successful for all domains"}
