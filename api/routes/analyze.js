@@ -5,7 +5,6 @@ const router = express.Router();
 
 const getAIresponse = require("./getAIresponse");
 
-// Repository analysis route
 router.post("/analyze-repo", async (req, res) => {
   const { Octokit } = await import("@octokit/rest");
 
@@ -16,7 +15,6 @@ router.post("/analyze-repo", async (req, res) => {
       return res.status(400).json({ error: "Repository URL is required" });
     }
 
-    // Validate GitHub URL format
     const urlRegex = /^(https?:\/\/)?github\.com\/[^/\s]+\/[^/\s]+$/;
     if (!urlRegex.test(repoUrl)) {
       return res.status(400).json({ error: "Invalid GitHub repository URL" });
@@ -24,13 +22,11 @@ router.post("/analyze-repo", async (req, res) => {
 
     const [owner, repo] = repoUrl.split("/").slice(-2);
 
-    // Initialize Octokit with environment token
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
       userAgent: "Kodesphere/v1.0.0",
     });
 
-    // Get repository content with error handling
     let contents;
     try {
       const response = await octokit.repos.getContent({
@@ -49,10 +45,8 @@ router.post("/analyze-repo", async (req, res) => {
 
     console.log("Repository Contents:", contents);
 
-    // Analyze repository
     const configs = await analyzeRepository(contents);
 
-    // Generate Docker configuration
     const dockerConfig = generateDockerConfig(configs);
 
     res.json({
@@ -68,17 +62,8 @@ router.post("/analyze-repo", async (req, res) => {
   }
 });
 
-// Repository analysis with Perplexity integration
 async function analyzeRepository(contents) {
   const fileNames = contents.map((item) => item.name);
-
-  // // First check for obvious tech stack indicators
-  // if (fileNames.includes("package.json")) return "node";
-  // if (fileNames.includes("requirements.txt")) return "python";
-  // if (fileNames.includes("pom.xml")) return "java";
-  // if (fileNames.includes("go.mod")) return "golang";
-
-  // Fallback to AI analysis
 
   console.log("File Names:", fileNames);
 
@@ -100,11 +85,10 @@ async function analyzeRepository(contents) {
     return configs;
   } catch (error) {
     console.error("Perplexity API Error:", error);
-    return "node"; // Fallback to Node.js
+    return "node";
   }
 }
 
-// Docker configuration generator
 function generateDockerConfig(configs) {
   return configs;
 }
