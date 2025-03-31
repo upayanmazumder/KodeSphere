@@ -17,7 +17,6 @@ export default function Settings() {
 
   return (
     <div className={settingsStyles.settings}>
-      <h1 className={settingsStyles.title}>User Details</h1>
       <div className={settingsStyles.details}>
         {user.avatar && (
           <img
