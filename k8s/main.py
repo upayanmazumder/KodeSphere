@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import subprocess
-from k8s_yaml import generate_deployment_yaml, generate_service_yaml, generate_ingress_yaml
+from .k8s_yaml import generate_deployment_yaml, generate_service_yaml, generate_ingress_yaml
 
 app = FastAPI()
 
