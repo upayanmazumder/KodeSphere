@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -6,33 +7,41 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import API_URL from "../../shared/api";
 import styles from "./dashboard.module.css";
+import Modal from "./modal/modal";
 
 export default function Dashboard() {
   const { data: session } = useSession();
   const [repos, setRepos] = useState([]);
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [analyzingRepo, setAnalyzingRepo] = useState(null);
+  const [modalData, setModalData] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     setLoading(true);
     if (!session) {
       router.push("/login");
-    } else {
-      const githubUserId = session?.user?.id;
-      if (!githubUserId) {
-        console.error("GitHub user ID missing.");
-        return;
-      }
-      fetch(`${API_URL}/github/repos?githubUserId=${githubUserId}`)
-        .then((res) => res.json())
-        .then((data) => setRepos(data.repos || []))
-        .catch((err) => console.error("Error fetching repos:", err))
-        .finally(() => setLoading(false));
+      return;
     }
+
+    const githubUserId = session?.user?.id;
+    if (!githubUserId) {
+      console.error("GitHub user ID missing.");
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${API_URL}/github/repos?githubUserId=${githubUserId}`)
+      .then((res) => res.json())
+      .then((data) => setRepos(data.repos || []))
+      .catch((err) => console.error("Error fetching repos:", err))
+      .finally(() => setLoading(false));
   }, [session, router]);
 
   const handleAnalyzeRepo = async (repoName) => {
+    setAnalyzingRepo(repoName);
     const repoUrl = `https://github.com/${repoName}`;
+
     try {
       const response = await fetch(`${API_URL}/analyze-repo`, {
         method: "POST",
@@ -41,45 +50,67 @@ export default function Dashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to analyze.");
-      alert(
-        `Suggested Docker configurations:\n\n${
-          data.dockerfile ? `Dockerfile:\n${data.dockerfile}\n\n` : ""
-        }${data.dockerCompose ? `Docker Compose:\n${data.dockerCompose}` : ""}`
-      );
+
+      setModalData({
+        repoName,
+        dockerfile: data.dockerfile || "",
+        dockerCompose: data.dockerCompose || "",
+      });
     } catch (err) {
-      alert(`Failed to analyze: ${err.message}`);
+      setModalData({
+        repoName,
+        error: `Failed to analyze: ${err.message}`,
+      });
+    } finally {
+      setAnalyzingRepo(null);
     }
   };
+
+  const closeModal = () => setModalData(null);
 
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.mainContent}>
-        {loading && <Loading />}
-        <h1 className={styles.welcomeText}>
-          Welcome back, {session?.user?.name}!
-        </h1>
-        <input
-          type="text"
-          placeholder="Search repositories..."
-          className={styles.searchBar}
-        />
+        {loading ? (
+          <Loading />
+        ) : (
+          <>
+            <h1 className={styles.welcomeText}>
+              Welcome back, {session?.user?.name}!
+            </h1>
+            <input
+              type="text"
+              placeholder="Search repositories..."
+              className={styles.searchBar}
+            />
 
-        <div className={styles.repoList}>
-          {repos.map((repo) => (
-            <div key={repo.id} className={styles.repoTile}>
-              <div className={styles.repoInfo}>
-                <strong>{repo.name}</strong>
-                <span className={styles.repoFullName}>{repo.full_name}</span>
-              </div>
-              <button
-                onClick={() => handleAnalyzeRepo(repo.full_name)}
-                className={styles.analyzeButton}
-              >
-                Analyze Repo
-              </button>
+            <div className={styles.repoList}>
+              {repos.length > 0 ? (
+                repos.map((repo) => (
+                  <div key={repo.id} className={styles.repoTile}>
+                    <div className={styles.repoInfo}>
+                      <strong>{repo.name}</strong>
+                      <span className={styles.repoFullName}>
+                        {repo.full_name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleAnalyzeRepo(repo.full_name)}
+                      className={styles.analyzeButton}
+                      disabled={analyzingRepo === repo.full_name}
+                    >
+                      {analyzingRepo === repo.full_name
+                        ? "Analyzing..."
+                        : "Analyze Repo"}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className={styles.noRepos}>No repositories found.</p>
+              )}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
 
       <div className={styles.profileContainer}>
@@ -91,6 +122,8 @@ export default function Dashboard() {
         <p className={styles.username}>@{session?.user?.name}</p>
         <button className={styles.installButton}>Install GitHub</button>
       </div>
+
+      {modalData && <Modal modalData={modalData} closeModal={closeModal} />}
     </div>
   );
 }
