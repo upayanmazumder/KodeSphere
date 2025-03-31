@@ -1,0 +1,25 @@
+.login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+}
+
+.github {
+    background-color: transparent;
+    font-size: 1rem;
+    box-shadow: 0 0 8px 8px rgba(56, 56, 56, 0.2);
+    color: rgb(155, 155, 155);
+    transition: color 0.1s ease-in-out, background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.github:hover {
+    background-color: initial;
+    box-shadow: 0 0 10px 10px rgba(173, 173, 173, 0.2);
+    color: white;
+}
+
+.github svg {
+    font-size: 1.5rem;
+}

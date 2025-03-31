@@ -98,10 +98,10 @@ body {
 
 main {
   margin: var(--screen-vertical-margin) var(--screen-horizontal-margin);
-  min-height: 70vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: var(--padding-huge) 0;
+  padding: var(--padding-large) var(--padding-medium) var(--padding-huge);
 }
 
 h1,
@@ -122,6 +122,18 @@ a:hover {
   color: var(--text-link-hover-color);
 }
 
+.heading {
+
+}
+
+.heading h1 {
+
+}
+
+.heading h2 {
+
+}
+
 ul {
   list-style: none;
 }
@@ -139,6 +151,7 @@ button {
 button:hover {
   background-color: rgb(22, 22, 22);
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.24);
+  cursor: pointer;
 }
 
 button svg {

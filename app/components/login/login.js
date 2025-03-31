@@ -1,5 +1,6 @@
 "use client";
 
+import loginStyles from "./login.module.css";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -16,14 +17,11 @@ export default function Login() {
   }, [session, router]);
 
   return (
-    <div>
-      <div>
-        <h1>Welcome to KodeSphere</h1>
-        <p>Sign in to continue.</p>
-        <button onClick={() => signIn("github")}>
-          <BiLogoGithub />
-        </button>
-      </div>
+    <div className={loginStyles.login}>
+      <button onClick={() => signIn("github")} className={loginStyles.github}>
+        Sign in using Github
+        <BiLogoGithub style={{ marginLeft: "var(--padding-small)" }} />
+      </button>
     </div>
   );
 }
