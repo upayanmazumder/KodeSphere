@@ -7,11 +7,10 @@ const path = require("path");
 
 dotenv.config();
 
-const router = express.Router(); // ✅ Define router before using it
+const router = express.Router();
 
 const { getUserRepositories } = require("../controllers/githubController");
 
-// ✅ Ensure this function uses the authenticated user's GitHub ID
 router.get("/repos", getUserRepositories);
 
 module.exports = router;

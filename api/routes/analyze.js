@@ -1,11 +1,13 @@
 const express = require("express");
 const axios = require("axios");
-const { Octokit } = require("@octokit/rest");
 
 const router = express.Router();
 
-// Repository analysis route
+const getAIresponse = require("./getAIresponse");
+
 router.post("/analyze-repo", async (req, res) => {
+  const { Octokit } = await import("@octokit/rest");
+
   try {
     const { repoUrl } = req.body;
 
@@ -13,7 +15,6 @@ router.post("/analyze-repo", async (req, res) => {
       return res.status(400).json({ error: "Repository URL is required" });
     }
 
-    // Validate GitHub URL format
     const urlRegex = /^(https?:\/\/)?github\.com\/[^/\s]+\/[^/\s]+$/;
     if (!urlRegex.test(repoUrl)) {
       return res.status(400).json({ error: "Invalid GitHub repository URL" });
@@ -21,13 +22,11 @@ router.post("/analyze-repo", async (req, res) => {
 
     const [owner, repo] = repoUrl.split("/").slice(-2);
 
-    // Initialize Octokit with environment token
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
       userAgent: "Kodesphere/v1.0.0",
     });
 
-    // Get repository content with error handling
     let contents;
     try {
       const response = await octokit.repos.getContent({
@@ -44,11 +43,11 @@ router.post("/analyze-repo", async (req, res) => {
       });
     }
 
-    // Analyze repository
-    const projectType = await analyzeRepository(contents);
+    console.log("Repository Contents:", contents);
 
-    // Generate Docker configuration
-    const dockerConfig = generateDockerConfig(projectType);
+    const configs = await analyzeRepository(contents);
+
+    const dockerConfig = generateDockerConfig(configs);
 
     res.json({
       dockerfile: dockerConfig.dockerfile,
@@ -63,103 +62,35 @@ router.post("/analyze-repo", async (req, res) => {
   }
 });
 
-// Repository analysis with Perplexity integration
 async function analyzeRepository(contents) {
   const fileNames = contents.map((item) => item.name);
-  const fileExtensions = new Set(
-    fileNames.map((name) => name.split(".").pop())
-  );
 
-  // First check for obvious tech stack indicators
-  if (fileNames.includes("package.json")) return "node";
-  if (fileNames.includes("requirements.txt")) return "python";
-  if (fileNames.includes("pom.xml")) return "java";
-  if (fileNames.includes("go.mod")) return "golang";
+  console.log("File Names:", fileNames);
 
-  // Fallback to AI analysis
+  const nameString = fileNames.join(", ");
+
+  const aiPrompt1 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the dockerfile for the project. Dont say here it is or anything in the response, just give me the dockerfile contents. There should not be anything else in your response other than dockerfile contents. The content should start from FROM command directly`;
+
+  const aiPrompt2 = `Analyze the following file names and determine the most likely programming language or framework (node, python, java, go) used in the repository: ${nameString}. The give me only the docker-compose.yml for the project. Dont say here it is or anything in the response, just give me the docker-compose.yml contents. There should not be anything else in your response other than docker-compose.yml contents.`;
+
   try {
-    const response = await axios.post(
-      "https://api.perplexity.ai/analyze",
-      {
-        files: fileNames,
-        context: "Determine appropriate Docker configuration",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.projectType || "node";
+    const aiResponseDockerfile = await getAIresponse(aiPrompt1);
+    const aiResponseDockerCompose = await getAIresponse(aiPrompt2, true);
+
+    const configs = {
+      dockerfile: aiResponseDockerfile,
+      dockerCompose: aiResponseDockerCompose,
+    };
+
+    return configs;
   } catch (error) {
     console.error("Perplexity API Error:", error);
-    return "node"; // Fallback to Node.js
+    return "node";
   }
 }
 
-// Docker configuration generator
-function generateDockerConfig(projectType) {
-  const configs = {
-    node: {
-      dockerfile: `# Optimized Node.js Dockerfile
-FROM node:16-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --production
-COPY . .
-RUN npm run build
-
-FROM node:16-alpine
-WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY package*.json ./
-EXPOSE 3000
-USER node
-CMD ["npm", "start"]`,
-      dockerCompose: `# Node.js Docker Compose
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    volumes:
-      - ./:/app
-      - /app/node_modules`,
-    },
-    python: {
-      dockerfile: `# Python Dockerfile
-FROM python:3.8-slim-buster AS builder
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt
-
-FROM python:3.8-slim-buster
-WORKDIR /app
-COPY --from=builder /root/.local /root/.local
-COPY . .
-ENV PATH=/root/.local/bin:$PATH
-EXPOSE 5000
-CMD ["python", "app.py"]`,
-      dockerCompose: `# Python Docker Compose
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - FLASK_ENV=production
-    volumes:
-      - ./:/app`,
-    },
-  };
-
-  return configs[projectType] || configs.node;
+function generateDockerConfig(configs) {
+  return configs;
 }
 
 module.exports = router;
