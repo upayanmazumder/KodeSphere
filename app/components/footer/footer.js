@@ -17,7 +17,13 @@ export default function Footer() {
           </li>
         </ul>
         <div className={footerStyles.branding}>
-          <span>kodesphere</span>
+          <a
+            href="https://github.com/upayanmazumder/kodesphere"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>kodesphere</span>
+          </a>
         </div>
       </div>
       <div className={footerStyles.bottom}>

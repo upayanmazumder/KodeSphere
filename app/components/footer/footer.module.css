@@ -1,8 +1,13 @@
 .footer {
     background: var(--footer-background-color);
     color: #131010;
-    padding: var(--padding-medium) var(--padding-large);
+    padding: var(--padding-small) var(--padding-large);
     animation: fadeIn 0.1s ease-in-out;
+    font-size: 1rem;
+}
+
+.footer:hover {
+    cursor: default;
 }
 
 .footer * {
@@ -28,11 +33,11 @@
 }
 
 .links li {
-    font-size: 23px;
+    font-size: 1.1rem;
 }
 
 .branding span {
-    font-size: 30px;
+    font-size: 1.5rem;
     font-weight: 900;
     -webkit-text-stroke: 1px black;
 }
@@ -42,7 +47,7 @@
 }
 
 .bottom p {
-    font-size: 15px;
+    font-size: 0.7em;
     font-weight: 400;
 }
 
