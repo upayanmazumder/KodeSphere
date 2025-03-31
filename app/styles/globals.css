@@ -122,16 +122,12 @@ a:hover {
   color: var(--text-link-hover-color);
 }
 
-.heading {
-
-}
-
 .heading h1 {
-
+  font-size: 1.3rem;
 }
 
 .heading h2 {
-
+  font-size: 1rem;
 }
 
 ul {
