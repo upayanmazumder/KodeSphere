@@ -1,5 +1,6 @@
 .dashboardContainer {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
   width: 100%;
@@ -16,7 +17,7 @@
 
 .mainContent {
   flex-grow: 1;
-  max-width: 85%;
+  max-width: calc(100% - 300px);
   display: flex;
   flex-direction: column;
   gap: 20px;
