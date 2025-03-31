@@ -88,8 +88,8 @@ Users can update or remove their deployments through API endpoints.
 
 kodesphere is built by **The Orchaestrators**.  
 
-- **Upayan Mazumder** - [upayan.dev](https://upayan.dev) [LinkedIn](https://www.linkedin.com/in/upayanmazumder/)
-- **Atharva Sharma** - [atharvasharma.vercel.app](https://atharvasharma.vercel.app/) [LinkedIn](https://www.linkedin.com/in/atharva-sharma-vit/)
+- **[Upayan Mazumder](https://upayan.dev)** - [LinkedIn](https://www.linkedin.com/in/upayanmazumder/)  
+- **[Atharva Sharma](https://atharvasharma.vercel.app/)** - [LinkedIn](https://www.linkedin.com/in/atharva-sharma-vit/)  
 - **Advik Gupta** - [LinkedIn](https://www.linkedin.com/in/advik-gupta-37a557308)  
-- **Chitrita Gahlot**  
-- **Diya Bajoria**  
+- **Chitrita Gahlot** - [LinkedIn](https://in.linkedin.com/in/chitrita-gahlot-72a905321)
+- **Diya Bajoria** - [LinkedIn](https://www.linkedin.com/in/diya-bajoria-375367335/?trk=opento_sprofile_topcard)
