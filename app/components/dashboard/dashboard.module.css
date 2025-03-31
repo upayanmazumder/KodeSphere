@@ -24,7 +24,7 @@
 }
 
 .welcomeText {
-  font-size: 1rem;
+  font-size: 2rem;
   font-weight: bold;
   background: linear-gradient(to right, cyan, rgb(50, 110, 50));
   -webkit-background-clip: text;
