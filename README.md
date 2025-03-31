@@ -61,16 +61,25 @@ Check out the Figma design for KodeSphere:
 To deploy an application, send a request to the KodeSphere API with the necessary details:  
 
 ```json  
-{  
-  "subdomain": "myapp.user123",  
-  "image": "ghcr.io/user123/my-app:latest",  
-  "ports": {  
-    "80": "8080"  
-  },  
-  "env": {  
-    "DATABASE_URL": "postgres://user:password@db:5432/dbname"  
-  }  
-}  
+{
+  "image": "<DOCKER IMAGE>",
+  "domains": [
+    {
+      "url": "<CUSTOMIZABLE SUBDOMAIN 1>.<GITHUB USERNAME>.vitians.in",
+      "ports": [<LIST OF PORTS TO USE FOR THIS SUBDOMAIN>]
+    },
+   {
+      "url": "<CUSTOMIZABLE SUBDOMAIN 2>.<GITHUB USERNAME>.vitians.in",
+      "ports": [<LIST OF PORTS TO USE FOR THIS SUBDOMAIN>]
+    },
+  ],
+  "env_vars": {
+    "ENVIRONMENT": "production",
+    "DEBUG": "false",
+    "API_KEY": "12345"
+  }
+}
+
 ```  
 
 ### Managing Deployments  
