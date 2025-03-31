@@ -1,0 +1,45 @@
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100vw; 
+  height: 100vh; 
+  background-color: rgba(0, 0, 0, 0.5); 
+}
+
+.greenCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: green;
+  position: relative;
+}
+
+.curlyBraceLeft,
+.curlyBraceRight {
+  font-size: 24px;
+  position: absolute;
+  animation: revolve 2s linear infinite;
+}
+
+.curlyBraceLeft {
+  left: -20px; /* Adjusted position */
+  animation: revolve 2s linear infinite; /* Updated animation */
+}
+
+.curlyBraceRight {
+  right: -20px; /* Adjusted position */
+  animation: revolve 2s linear infinite; /* Updated animation */
+}
+
+@keyframes revolve {
+  0% {
+    transform: rotate(0deg) translateX(30px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(30px) rotate(-360deg);
+  }
+}

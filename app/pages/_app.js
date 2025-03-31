@@ -10,10 +10,10 @@ function Layout({ children }) {
 
   return (
     <>
-      <Header />
+     {session && <Header/>}
       {session && <Sidebar />}
       {children}
-      <Footer />
+      {session && <Footer />}
     </>
   );
 }
