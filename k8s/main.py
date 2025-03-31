@@ -6,7 +6,6 @@ from typing import List, Dict, Optional
 
 app = FastAPI()
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "https://ks.upayan.dev"],
@@ -33,7 +32,6 @@ async def deploy_app(payload: Dict):
         if not url or not ports:
             raise HTTPException(status_code=400, detail="Each domain must have a 'url' and 'ports'")
 
-        # Ensure unique names per domain
         unique_name = f"{deployment_name or url.split('.')[0]}-{index}"
 
         env_yaml = "\n".join(

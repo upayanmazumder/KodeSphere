@@ -1,7 +1,7 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
-require("dotenv").config(); // Load environment variables from .env file
+require("dotenv").config();
 
 function generateGitHubAppJWT() {
   let privateKey;

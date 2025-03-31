@@ -1,7 +1,7 @@
 const passport = require("passport");
-const GitHubStrategy = require("passport-github2").Strategy; 
+const GitHubStrategy = require("passport-github2").Strategy;
 
-const User = require("../models/User"); 
+const User = require("../models/User");
 
 const dotenv = require("dotenv");
 
@@ -13,7 +13,7 @@ passport.use(
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: process.env.GITHUB_CALLBACK_URL,
-      scope: ['user:email', 'repo'], 
+      scope: ["user:email", "repo"],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -25,7 +25,7 @@ passport.use(
             username: profile.username,
             email: profile.emails?.[0]?.value || "",
             avatar: profile.photos?.[0]?.value || "",
-            accessToken: accessToken, // Store access token
+            accessToken: accessToken,
           });
           await user.save();
         }

@@ -1,4 +1,4 @@
-# README for FastAPI Kubernetes Deployment
+# Kubernetes Deployment
 
 ## Project Overview
 
