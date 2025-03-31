@@ -6,7 +6,7 @@ const Import = () => {
   const [formData, setFormData] = useState({
     image: "",
     domains: [{ subdomain: "", url: "", ports: "" }],
-    env_variables: [{ key: "", value: "" }],
+    env_variables: [],
   });
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -59,9 +59,7 @@ const Import = () => {
     }));
   };
 
-  const isValidPortFormat = (ports) => {
-    return /^\d+(,\d+)*$/.test(ports);
-  };
+  const isValidPortFormat = (ports) => /^\d+(,\d+)*$/.test(ports);
 
   const isFormValid = () => {
     return (
@@ -69,9 +67,10 @@ const Import = () => {
       formData.domains.every(
         (d) => d.subdomain.trim() !== "" && isValidPortFormat(d.ports)
       ) &&
-      formData.env_variables.every(
-        (env) => env.key.trim() !== "" && env.value.trim() !== ""
-      )
+      (formData.env_variables.length === 0 ||
+        formData.env_variables.every(
+          (env) => env.key.trim() !== "" && env.value.trim() !== ""
+        ))
     );
   };
 
@@ -92,8 +91,10 @@ const Import = () => {
         url,
         ports: ports.split(",").map((port) => parseInt(port.trim(), 10)),
       })),
-      env_variables: Object.fromEntries(
-        formData.env_variables.map(({ key, value }) => [key, value])
+      env: Object.fromEntries(
+        formData.env_variables
+          .filter(({ key, value }) => key.trim() !== "" && value.trim() !== "")
+          .map(({ key, value }) => [key, value])
       ),
     };
 
