@@ -7,10 +7,10 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    top: 20vh;
+    top: 15vh;
     margin-left: var(--margin-large);
     border-radius: var(--border-radius-small);
-    padding: var(--padding-large) var(--padding-small);
+    padding: var(--padding-medium) var(--padding-tiny);
 }
 
 .sidebar button {
@@ -23,8 +23,8 @@
 }
 
 .sidebar button svg {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     transition: filter 0.2s ease-in-out;
 }
 

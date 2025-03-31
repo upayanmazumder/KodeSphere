@@ -10,12 +10,14 @@ function Layout({ children }) {
   const { data: session } = useSession();
   const router = useRouter();
 
+  const showSidebar = session && !["/", "/login"].includes(router.pathname);
+
   return (
     <>
       {router.pathname !== "/" && <Header />}
-      {session && <Sidebar />}
+      {showSidebar && <Sidebar />}
       {children}
-      {session && <Footer />}
+      <Footer />
     </>
   );
 }

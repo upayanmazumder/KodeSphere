@@ -1,3 +1,4 @@
+import { getSession } from "next-auth/react";
 import Settings from "../components/settings/settings";
 
 export default function SettingsPage() {
@@ -10,4 +11,21 @@ export default function SettingsPage() {
       <Settings />
     </main>
   );
+}
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
 }
