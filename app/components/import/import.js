@@ -45,7 +45,7 @@ const Import = () => {
         ...updatedArray[index],
         [key]: key === "subdomain" ? value : value.trim(),
         ...(key === "subdomain" && githubUsername
-          ? { url: `${value}-${githubUsername}.vitians.in` }
+          ? { url: `${value}.${githubUsername}.vitians.in` }
           : {}),
       };
       return { ...prev, [field]: updatedArray };
