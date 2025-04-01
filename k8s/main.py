@@ -81,19 +81,26 @@ metadata:
   name: {unique_name}-ingress
   namespace: {namespace}
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
+    cert-manager.io/cluster-issuer: letsencrypt-dns
 spec:
   ingressClassName: nginx
   rules:
   - host: {url}
     http:
       paths:
-""" + "".join(f"\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: {unique_name}-service\n            port:\n              number: {port}" for port in ports) + f"""
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {unique_name}-service
+            port:
+              number: {ports[0]}
   tls:
   - hosts:
     - {url}
-    secretName: {unique_name}-tls
+    secretName: wildcard-tls  # Use the wildcard certificate
 """
+
 
         try:
             for resource_name, yaml_content in [
