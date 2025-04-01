@@ -17,10 +17,12 @@ export default function GithubLogin() {
 
   return (
     <div className={loginStyles.login}>
-      <button onClick={handleRedirect} className={loginStyles.github}>
-        Give access to Github
-        <BiLogoGithub style={{ marginLeft: "var(--padding-small)" }} />
-      </button>
+      <a href="https://github.com/apps/kodesphere-app" target="_blank">
+        <button onClick={handleRedirect} className={loginStyles.github}>
+          Give access to Github
+          <BiLogoGithub style={{ marginLeft: "var(--padding-small)" }} />
+        </button>
+      </a>
     </div>
   );
 }

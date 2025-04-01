@@ -70,9 +70,7 @@ export default function Dashboard() {
   const closeModal = () => setModalData(null);
 
   const handleInstallClick = () => {
-    const installUrl =
-      process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL ||
-      "https://github.com/apps/kodesphere-app";
+    const installUrl = process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL;
     if (installUrl) {
       window.open(`${installUrl}/installations/select_target`, "_blank");
     } else {
@@ -150,9 +148,21 @@ export default function Dashboard() {
           <p className={styles.installText}>
             Repositories not showing up? Ensure you have the app installed
           </p>
-          <button className={styles.installButton} onClick={handleInstallClick}>
+          <button
+            style={{ display: "none" }}
+            className={styles.installButton}
+            onClick={handleInstallClick}
+          >
             Install GitHub App
           </button>
+          <a
+            href="https://github.com/apps/kodesphere-app"
+            style={{ fontSize: "0.6em", marginTop: 15 }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Install
+          </a>
         </div>
       </div>
 
