@@ -31,8 +31,7 @@ It manages and orchestrates deployments for users.
 
 ## 🎨 UI/UX Design  
 
-Check out the Figma design for kodesphere:  
-[Figma](https://www.figma.com/design/ID1d8pcH6fPSQIUY3grh2Z/kodesphere?node-id=0-1&t=ZNYoePDGk3zLGvhr-1)
+Check out the Figma design for kodesphere:  [Figma](https://www.figma.com/design/ID1d8pcH6fPSQIUY3grh2Z/kodesphere?node-id=0-1&t=ZNYoePDGk3zLGvhr-1)
 
 ## 🚀 Features  
 
