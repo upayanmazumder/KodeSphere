@@ -70,7 +70,9 @@ export default function Dashboard() {
   const closeModal = () => setModalData(null);
 
   const handleInstallClick = () => {
-    const installUrl = process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL;
+    const installUrl =
+      process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL ||
+      "https://github.com/apps/kodesphere-app";
     if (installUrl) {
       window.open(`${installUrl}/installations/select_target`, "_blank");
     } else {
