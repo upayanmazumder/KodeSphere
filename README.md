@@ -43,6 +43,8 @@ Check out the Figma design for kodesphere:
 
 ## 🏗️ How It Works  
 
+Check out the [presentation](https://www.figma.com/design/ID1d8pcH6fPSQIUY3grh2Z/Kodesphere?node-id=165-253&t=huiVNv0PjfaApOuP-1) and more in [assets](/assets/)!
+
 1. **Choose a Subdomain:**  
    Users select a subdomain under `vitians.in` (e.g., `myapp.user123.vitians.in`).  
 

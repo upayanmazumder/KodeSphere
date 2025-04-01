@@ -101,7 +101,6 @@ spec:
     secretName: wildcard-tls  # Use the wildcard certificate
 """
 
-
         try:
             for resource_name, yaml_content in [
                 (f"{unique_name}-deployment.yaml", deployment_yaml),
